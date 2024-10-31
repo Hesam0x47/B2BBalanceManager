@@ -1,0 +1,13 @@
+services:
+  db:
+    networks:
+      - backend
+  redis:
+    networks:
+      - backend
+  backend:
+    command: scripts/run.prod.sh
+    environment:
+      - DATABASE_HOST=${DATABASE_HOST:-db}
+    networks:
+      - backend
