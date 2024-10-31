@@ -60,25 +60,23 @@ jobs:
         echo "DATABASE_PASSWORD=test_password" >> $GITHUB_ENV
         echo "DATABASE_HOST=127.0.0.1" >> $GITHUB_ENV
         echo "DATABASE_PORT=5432" >> $GITHUB_ENV
-        echo "REDIS_HOST=127.0.0.1" >> $GITHUB_ENV
-        echo "REDIS_PORT=6379" >> $GITHUB_ENV
 
     - name: Run Django Migrations
       env:
-        DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
-        DATABASE_USER: ${{ secrets.DATABASE_USER }}
-        DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
-        DATABASE_HOST: ${{ secrets.DATABASE_HOST }}
-        DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
+        DATABASE_NAME: test_db
+        DATABASE_USER: test_user
+        DATABASE_PASSWORD: test_password
+        DATABASE_HOST: 127.0.0.1
+        DATABASE_PORT: 5432
       run: |
         python manage.py migrate
 
     - name: Run Tests
       env:
-        DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
-        DATABASE_USER: ${{ secrets.DATABASE_USER }}
-        DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
-        DATABASE_HOST: ${{ secrets.DATABASE_HOST }}
-        DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
+        DATABASE_NAME: test_db
+        DATABASE_USER: test_user
+        DATABASE_PASSWORD: test_password
+        DATABASE_HOST: 127.0.0.1
+        DATABASE_PORT: 5432
       run: |
         python manage.py test
