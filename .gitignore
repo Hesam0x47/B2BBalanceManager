@@ -1,6 +1,50 @@
-.idea
-*.sqlite3
+### Django ###
+*.log
+*.pot
+*.pyc
+__pycache__/
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media
+
+# PyCharm
+#  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
+#  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
+#  and can be added to the global gitignore or merged into this file.  For a more nuclear
+#  option (not recommended) you can uncomment the following to ignore the entire idea folder.
+.idea/
+
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Environments
 .env
 .env.dev
-__pycache__
-*.pyc
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# End of https://www.toptal.com/developers/gitignore/api/django
+# Most of above lines of .gitignore aquired from https://www.toptal.com/developers/gitignore/api/django
