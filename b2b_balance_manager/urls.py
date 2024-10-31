@@ -19,8 +19,6 @@ from django.contrib import admin
 from django.urls import path, include
 from drf_spectacular.views import SpectacularJSONAPIView, SpectacularSwaggerView, SpectacularRedocView
 
-from apps import transactions
-
 urlpatterns = [
     path('admin/', admin.site.urls),
 
@@ -32,5 +30,5 @@ urlpatterns = [
     # path('accounts/', include('django.contrib.auth.urls')),
     path('transactions/', include('apps.transactions.urls')),
     path('accounts/', include('apps.accounts.urls')),
-
+    path('accounting/', include('apps.accounting.urls')),
 ]

@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     # our apps
     'apps.transactions',
     'apps.accounts',
+    'apps.accounting',
 ]
 
 MIDDLEWARE = [
@@ -85,6 +86,7 @@ DATABASES = {
         'PASSWORD': os.getenv('DATABASE_PASSWORD', 'mypassword'),
         'HOST': os.getenv('DATABASE_HOST', 'localhost'),
         'PORT': os.getenv('DATABASE_PORT', '5432'),
+        'ATOMIC_REQUESTS': True, # TODO: check possible bottle-necks
     }
 }
 
