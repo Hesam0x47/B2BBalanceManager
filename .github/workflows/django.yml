@@ -1,0 +1,84 @@
+name: Django CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_DB: test_db
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U test_user" 
+          --health-interval 10s 
+          --health-timeout 5s 
+          --health-retries 5
+
+      redis:
+        image: redis:alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping" 
+          --health-interval 10s 
+          --health-timeout 5s 
+          --health-retries 5
+
+    strategy:
+      matrix:
+        python-version: [3.10.12]
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Set up Django Environment Variables
+      run: |
+        echo "DATABASE_NAME=test_db" >> $GITHUB_ENV
+        echo "DATABASE_USER=test_user" >> $GITHUB_ENV
+        echo "DATABASE_PASSWORD=test_password" >> $GITHUB_ENV
+        echo "DATABASE_HOST=127.0.0.1" >> $GITHUB_ENV
+        echo "DATABASE_PORT=5432" >> $GITHUB_ENV
+        echo "REDIS_HOST=127.0.0.1" >> $GITHUB_ENV
+        echo "REDIS_PORT=6379" >> $GITHUB_ENV
+
+    - name: Run Django Migrations
+      env:
+        DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
+        DATABASE_USER: ${{ secrets.DATABASE_USER }}
+        DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+        DATABASE_HOST: ${{ secrets.DATABASE_HOST }}
+        DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
+      run: |
+        python manage.py migrate
+
+    - name: Run Tests
+      env:
+        DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
+        DATABASE_USER: ${{ secrets.DATABASE_USER }}
+        DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+        DATABASE_HOST: ${{ secrets.DATABASE_HOST }}
+        DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
+      run: |
+        python manage.py test
