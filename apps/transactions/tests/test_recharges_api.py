@@ -72,9 +72,8 @@ class RechargeStatusChangeTestCase(APITestCase):
         self.seller = Seller.objects.create(name="Test Seller", balance=100.00)
         self.admin_user = User.objects.create_superuser(username='admin', password='adminpass')
         self.recharge = Recharge.objects.create(seller=self.seller, amount=30.00)
-        # self.recharge_status_change_accepted_url = reverse('recharge-change-status', kwargs={"recharge_id":self.recharge.id, "action": Recharge.STATUS_ACCEPTED })
-        self.recharge_status_change_accepted_url = reverse('recharge-change-status', args=[self.recharge.id, Recharge.STATUS_ACCEPTED ])
-        # self.recharge_status_change_rejected_url = reverse('recharge-change-status', kwargs={"recharge_id":self.recharge.id, "action": Recharge.STATUS_REJECTED })
+        self.recharge_status_change_accepted_url = reverse('recharge-change-status', kwargs={"recharge_id":self.recharge.id, "action": Recharge.STATUS_ACCEPTED })
+        self.recharge_status_change_rejected_url = reverse('recharge-change-status', kwargs={"recharge_id":self.recharge.id, "action": Recharge.STATUS_REJECTED })
 
     def test_approve_recharge_as_admin(self):
         self.client.login(username='admin', password='adminpass')
@@ -93,3 +92,14 @@ class RechargeStatusChangeTestCase(APITestCase):
 
         # Verify that access is forbidden
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_reject_recharge_as_admin(self):
+        self.client.login(username='admin', password='adminpass')
+
+        response = self.client.post(self.recharge_status_change_rejected_url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.recharge.refresh_from_db()
+        self.assertEqual(self.recharge.status, Recharge.STATUS_REJECTED)
+        self.seller.refresh_from_db()
+        self.assertEqual(float(self.seller.balance), 100.00)  # Original balance, because request rejected
