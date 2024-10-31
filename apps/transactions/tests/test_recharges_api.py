@@ -1,16 +1,18 @@
-from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from apps.transactions.models import Seller, Recharge
+from apps.accounts.models import SellerProfile, User
+from apps.transactions.models import Recharge
 
 
 class RechargeAPITestCase(APITestCase):
 
     def setUp(self):
         # Create a seller instance for testing
-        self.seller = Seller.objects.create(name="Test Seller", balance=100.00, email="sellar@sample.com")
+        self.seller_username = "seller"
+        self.seller_user = User.objects.create(username=self.seller_username, email="sellar@sample.com")
+        self.seller = SellerProfile.objects.create(balance=100.00, user=self.seller_user)
         self.recharge_url = reverse('recharge-list-create')
 
     def test_get_recharge_list(self):
@@ -30,7 +32,7 @@ class RechargeAPITestCase(APITestCase):
     def test_create_recharge_success(self):
         # Prepare payload for a new recharge
         payload = {
-            'seller': self.seller.email,
+            'seller': self.seller.user.username,
             'amount': '30.00'
         }
 
@@ -53,7 +55,7 @@ class RechargeAPITestCase(APITestCase):
     def test_create_recharge_invalid_seller(self):
         # Prepare payload with an invalid seller_id
         payload = {
-            'seller_id': 999,  # Non-existent seller ID
+            'seller':'invalid-server-id',  # Non-existent seller ID
             'amount': '30.00'
         }
 
@@ -69,7 +71,9 @@ class RechargeStatusChangeTestCase(APITestCase):
 
     def setUp(self):
         # Create a seller and admin user
-        self.seller = Seller.objects.create(name="Test Seller", balance=100.00)
+        self.seller_username = "seller"
+        self.seller_user = User.objects.create(username=self.seller_username, email="sellar@sample.com")
+        self.seller = SellerProfile.objects.create(user=self.seller_user, balance=100.00)
         self.admin_user = User.objects.create_superuser(username='admin', password='adminpass')
         self.recharge = Recharge.objects.create(seller=self.seller, amount=30.00)
         self.recharge_status_change_accepted_url = reverse('recharge-change-status', kwargs={"recharge_id":self.recharge.id, "action": Recharge.STATUS_ACCEPTED })

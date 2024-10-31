@@ -2,16 +2,8 @@ from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models import F
 
+from apps.accounts.models import SellerProfile
 from helpers.lock import acquire_thread_safe_lock
-
-
-class Seller(models.Model):
-    name = models.CharField(max_length=255)
-    email = models.EmailField(unique=True, null=False, blank=False)
-    balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-
-    def __str__(self):
-        return f"{self.name} - Balance: {self.balance}"
 
 
 class Transaction(models.Model):
@@ -22,7 +14,7 @@ class Transaction(models.Model):
         (RECHARGE, 'Recharge'),
     ]
 
-    seller = models.ForeignKey(Seller, related_name="transactions", on_delete=models.CASCADE)
+    seller = models.ForeignKey(SellerProfile, related_name="transactions", on_delete=models.CASCADE)
     transaction_type = models.CharField(max_length=10, choices=TRANSACTION_TYPES)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     timestamp = models.DateTimeField(auto_now_add=True)
@@ -39,7 +31,7 @@ class Transaction(models.Model):
         """
         with acquire_thread_safe_lock(f'seller-{self.seller.id}-lock'):
             # Lock the seller row to prevent concurrent updates
-            seller = Seller.objects.select_for_update().get(id=self.seller.id)
+            seller = SellerProfile.objects.select_for_update().get(id=self.seller.id)
 
             if self.transaction_type == self.SELL:
                 # Ensure there's enough balance to perform the transaction
@@ -54,7 +46,7 @@ class Transaction(models.Model):
             super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.seller.name} - {self.transaction_type.capitalize()} - ${self.amount}"
+        return f"{self.seller.user.username} - {self.transaction_type.capitalize()} - ${self.amount}"
 
 
 class Recharge(models.Model):
@@ -67,7 +59,7 @@ class Recharge(models.Model):
         (STATUS_REJECTED, 'Rejected'),
     ]
 
-    seller = models.ForeignKey(Seller, related_name="recharges", on_delete=models.CASCADE)
+    seller = models.ForeignKey(SellerProfile, related_name="recharges", on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     is_successful = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -87,4 +79,4 @@ class Recharge(models.Model):
         self.save()
 
     def __str__(self):
-        return f"Recharge for {self.seller.name} - ${self.amount} - {self.status.capitalize()}"
+        return f"Recharge for {self.seller.user.username} - ${self.amount} - {self.status.capitalize()}"
