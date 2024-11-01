@@ -2,7 +2,7 @@ from rest_framework import status, generics
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 
-from .models import BalanceIncreaseRequestModel, Sell
+from .models import BalanceIncreaseRequestModel, ChargeCustomerModel
 from .serializers import BalanceIncreaseRequestSerializer, ChargeCustomerSerializer
 from ..accounts.permissions import IsSeller
 
@@ -45,6 +45,6 @@ class BalanceIncreaseRequestApprovalView(generics.UpdateAPIView):
 
 
 class ChargeCustomerView(generics.CreateAPIView):
-    queryset = Sell.objects.all()
+    queryset = ChargeCustomerModel.objects.all()
     serializer_class = ChargeCustomerSerializer
     permission_classes = [IsSeller]

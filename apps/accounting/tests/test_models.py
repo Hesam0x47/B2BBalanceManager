@@ -4,7 +4,7 @@ from django.test import TestCase
 
 from apps.accounting.models import AccountEntry
 from apps.accounts.tests.utils import AccountsTestUtils
-from apps.transactions.models import BalanceIncreaseRequestModel, Sell
+from apps.transactions.models import BalanceIncreaseRequestModel, ChargeCustomerModel
 
 User = get_user_model()
 
@@ -28,7 +28,7 @@ class AccountEntryModelTest(TestCase):
     def test_account_entry_sell(self):
         # Create a sell transaction
         customer_phone_number = "09999999999"
-        Sell.objects.create(seller=self.seller, phone_number=customer_phone_number, amount=20.00)
+        ChargeCustomerModel.objects.create(seller=self.seller, phone_number=customer_phone_number, amount=20.00)
 
         # Verify AccountEntry was created with correct values
         account_entry = AccountEntry.objects.get(user=self.user, entry_type=AccountEntry.SELL)

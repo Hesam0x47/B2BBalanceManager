@@ -9,11 +9,11 @@ from apps.accounts.models import SellerProfile
 from utils.helpers import acquire_thread_safe_lock
 
 
-class Sell(models.Model):
+class ChargeCustomerModel(models.Model):
     seller = models.ForeignKey(SellerProfile, related_name="sales", on_delete=models.CASCADE)
     phone_number = models.CharField(max_length=15)
-    amount = models.DecimalField(max_digits=10, decimal_places=2) # todo: CHANGE THIS FIELD TO PositiveIntegerField
-                                                                  #  and limit it to 5000, 1000,20000,50000
+    amount = models.DecimalField(max_digits=10, decimal_places=2)  # todo: CHANGE THIS FIELD TO PositiveIntegerField
+    #  and limit it to 5000, 1000,20000,50000
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __process_charge_customer(self):
@@ -61,6 +61,7 @@ class BalanceIncreaseRequestModel(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=STATUS_PENDING)
 
+    @db_transaction.atomic
     def approve(self):
         # to prevent race conditions we use a thread-safe lock
         with acquire_thread_safe_lock(f'recharge-{self.seller.id}-lock'):
@@ -70,13 +71,14 @@ class BalanceIncreaseRequestModel(models.Model):
 
             self.status = self.STATUS_ACCEPTED
             self.save()
-            self.__process_recharge()
+            self.__process_balance_increase()
 
+    @db_transaction.atomic
     def reject(self):
         self.status = self.STATUS_REJECTED
         self.save()
 
-    def __process_recharge(self):
+    def __process_balance_increase(self):
         if self.status == self.STATUS_ACCEPTED:
             self.seller.balance += self.amount
             self.seller.save()

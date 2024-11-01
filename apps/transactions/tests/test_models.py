@@ -3,7 +3,7 @@ from django.test import TestCase
 from rest_framework.exceptions import ValidationError
 
 from apps.accounts.tests.utils import AccountsTestUtils
-from apps.transactions.models import BalanceIncreaseRequestModel, Sell
+from apps.transactions.models import BalanceIncreaseRequestModel, ChargeCustomerModel
 
 
 class RechargeModelTest(TestCase):
@@ -69,7 +69,7 @@ class SellModelTest(TestCase):
 
     def test_sell_transaction(self):
         # Test a valid sell transaction that reduces seller's balance
-        sale = Sell.objects.create(seller=self.seller_profile, phone_number=self.phone_number, amount=20.00)
+        sale = ChargeCustomerModel.objects.create(seller=self.seller_profile, phone_number=self.phone_number, amount=20.00)
         self.seller_profile.refresh_from_db()
         self.assertEqual(sale.amount, 20.00)
         self.assertEqual(self.seller_profile.balance, 80.00)  # Seller's balance is reduced
@@ -77,7 +77,7 @@ class SellModelTest(TestCase):
     def test_sell_transaction_insufficient_balance(self):
         # Test that an attempted sell with insufficient balance raises ValidationError
         with self.assertRaises(ValidationError):
-            Sell.objects.create(seller=self.seller_profile, phone_number=self.phone_number, amount=200.00)
+            ChargeCustomerModel.objects.create(seller=self.seller_profile, phone_number=self.phone_number, amount=200.00)
 
 
 class DoubleSpendingTest(TestCase):
@@ -86,14 +86,14 @@ class DoubleSpendingTest(TestCase):
         self.phone_number = "09999999999"
 
     def test_single_sell_transaction(self):
-        Sell.objects.create(seller=self.seller_profile, phone_number=self.phone_number, amount=20.00)
+        ChargeCustomerModel.objects.create(seller=self.seller_profile, phone_number=self.phone_number, amount=20.00)
         self.seller_profile.refresh_from_db()
         self.assertEqual(self.seller_profile.balance, 80.00)
 
     def test_double_spending_prevention(self):
         # Simulate two simultaneous sell transactions to ensure insufficient balance is respected
         with transaction.atomic():
-            Sell.objects.create(seller=self.seller_profile, phone_number=self.phone_number, amount=60.00)
+            ChargeCustomerModel.objects.create(seller=self.seller_profile, phone_number=self.phone_number, amount=60.00)
             with self.assertRaises(ValidationError):
                 # This second transaction should fail due to insufficient funds
-                Sell.objects.create(seller=self.seller_profile, phone_number=self.phone_number, amount=60.00)
+                ChargeCustomerModel.objects.create(seller=self.seller_profile, phone_number=self.phone_number, amount=60.00)

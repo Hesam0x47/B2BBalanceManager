@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import BalanceIncreaseRequestModel, Sell
+from .models import BalanceIncreaseRequestModel, ChargeCustomerModel
 from ..accounts.models import SellerProfile
 
 
@@ -31,7 +31,7 @@ class ChargeCustomerSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        model = Sell
+        model = ChargeCustomerModel
         fields = [
             # 'id', # we do not show id in response because there is no saved instance and therefore id is always None
             'seller',
