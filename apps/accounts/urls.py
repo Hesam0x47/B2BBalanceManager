@@ -2,7 +2,7 @@ from django.urls import path
 
 from .views.admin_login import AdminTokenObtainPairView
 from .views.seller_login import SellerLoginView
-from .views.seller_profile import SellerProfileListView
+from .views.seller_profile import SellerProfileListView, SellerProfileRetrieveView
 from .views.seller_registration import SellerRegistrationView
 from .views.seller_verification import SellerVerificationView
 
@@ -13,6 +13,7 @@ urlpatterns = [
     path("seller/register/", SellerRegistrationView.as_view(), name="seller-register"),
     path("seller/login/", SellerLoginView.as_view(), name="seller-login"),
     path('sellers/', SellerProfileListView.as_view(), name='seller-list'),
+    path('sellers/<int:pk>/', SellerProfileRetrieveView.as_view(), name='seller-retrieve'),
 
     # todo: add logout api for admin and seller
 ]
