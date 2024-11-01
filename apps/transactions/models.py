@@ -16,7 +16,7 @@ class Sell(models.Model):
                                                                   #  and limit it to 5000, 1000,20000,50000
     timestamp = models.DateTimeField(auto_now_add=True)
 
-    def __process_sale(self):
+    def __process_charge_customer(self):
         with acquire_thread_safe_lock(f'sell-{self.seller.id}-lock'):
             # to prevent double-spending and race conditions
             seller = SellerProfile.objects.select_for_update().get(id=self.seller.id)
@@ -36,7 +36,7 @@ class Sell(models.Model):
 
     @db_transaction.atomic
     def save(self, *args, **kwargs):
-        self.__process_sale()
+        self.__process_charge_customer()
 
         # we do not save anything, this model is just handling charge customers phone numbers
         # and keep the accounting information in accounting app
