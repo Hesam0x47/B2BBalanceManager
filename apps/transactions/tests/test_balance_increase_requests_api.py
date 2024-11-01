@@ -2,29 +2,29 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from apps.accounts.models import SellerProfile, User
+from apps.accounts.tests.utils import AccountsTestUtils
 from apps.transactions.models import BalanceIncreaseRequestModel
-from utils.test_mixins import AdminAuthMixins
+from apps.transactions.tests.utils import IncreaseBalanceTestMixins
+from utils.test_mixins import AdminAuthMixins, SellerUserMixins
 
 
-class BalanceIncreaseRequestsAPITestCase(APITestCase, AdminAuthMixins):
+class BalanceIncreaseRequestsAPITestCase(APITestCase, AdminAuthMixins, IncreaseBalanceTestMixins, SellerUserMixins):
 
     def setUp(self):
         # Create a seller instance for testing
-        self.seller_username = "seller"
-        self.seller_user = User.objects.create(username=self.seller_username, email="sellar@sample.com")
-        self.seller = SellerProfile.objects.create(balance=100.00, user=self.seller_user)
-        self.recharge_url = reverse('balance-increase-requests')
-        self.login()
-        self.set_admin_authorization()
+        self.seller_user, self.seller = AccountsTestUtils.create_seller()
 
-    def test_get_recharge_list(self):
+        self.balance_increase_request_url = reverse('balance-increase-requests')
+
+    def test_get_increase_balance_list(self):
+        self.login()
+
         # Create a few recharge instances for testing
         BalanceIncreaseRequestModel.objects.create(seller=self.seller, amount=20.00)
         BalanceIncreaseRequestModel.objects.create(seller=self.seller, amount=50.00)
 
         # Send GET request to retrieve the list of recharges
-        response = self.client.get(self.recharge_url)
+        response = self.client.get(self.balance_increase_request_url)
 
         # Verify the response status and data
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -32,15 +32,11 @@ class BalanceIncreaseRequestsAPITestCase(APITestCase, AdminAuthMixins):
         self.assertEqual(response.data[0]['amount'], '20.00')
         self.assertEqual(response.data[1]['amount'], '50.00')
 
-    def test_create_recharge_success(self):
-        # Prepare payload for a new recharge
-        payload = {
-            'seller': self.seller.user.username,
-            'amount': '30.00'
-        }
-
-        # Send POST request to create a new recharge
-        response = self.client.post(self.recharge_url, payload, format='json')
+    def test_increase_balance_success(self):
+        token, _ = self.login_seller(self.seller_user.username)
+        self.set_seller_authorization_token(token)
+        response = self.increase_balance(self.seller.user.username, amount='30.00',
+                                         expected_status_code=status.HTTP_201_CREATED)
 
         # Verify the response status and data
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, msg=response.json())
@@ -55,71 +51,53 @@ class BalanceIncreaseRequestsAPITestCase(APITestCase, AdminAuthMixins):
             msg="balance should not still change, because is has not yet been approved!",
         )
 
-    def test_create_recharge_invalid_seller(self):
-        # Prepare payload with an invalid seller_id
-        payload = {
-            'seller': 'invalid-server-id',  # Non-existent seller ID
-            'amount': '30.00'
-        }
+    def test_increase_balance_invalid_seller(self):
+        token, _ = self.login_seller(self.seller_user.username)
+        self.set_seller_authorization_token(token)
+        response = self.increase_balance(seller_username='invalid-server-id', amount='30.00',
+                                         expected_status_code=status.HTTP_400_BAD_REQUEST)
 
-        # Send POST request with invalid data
-        response = self.client.post(self.recharge_url, payload, format='json')
-
-        # Verify the response status and error message
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, msg=response.json())
-        self.assertIn('seller', response.data)  # Check that the error message mentions the seller field
+        self.assertIn('seller', response.data)
 
 
-class BaseRechargeStatusChangeTestCase(APITestCase):
+class BaseBalanceIncreaseApprovalTestCase(APITestCase, IncreaseBalanceTestMixins, SellerUserMixins):
     def setUp(self):
-        # Create a seller and admin user
-        self.seller_username = "seller"
-        self.seller_user = User.objects.create(username=self.seller_username, email="sellar@sample.com")
-        self.seller = SellerProfile.objects.create(user=self.seller_user, balance=100.00)
-        self.recharge = BalanceIncreaseRequestModel.objects.create(seller=self.seller, amount=30.00)
-        self.recharge_status_change_accepted_url = reverse(
-            'balance-increase-requests-approval',
-            kwargs={"pk": self.recharge.id,
-                    "action": BalanceIncreaseRequestModel.STATUS_ACCEPTED},
-        )
-        self.recharge_status_change_rejected_url = reverse(
-            'balance-increase-requests-approval',
-            kwargs={"pk": self.recharge.id,
-                    "action": BalanceIncreaseRequestModel.STATUS_REJECTED},
-        )
+        self.seller_user, self.seller = AccountsTestUtils.create_seller()
+        token, _ = self.login_seller(username=self.seller_user.username)
+        self.set_seller_authorization_token(token)
+        self.increase_balance(self.seller_user.username, amount='30.00', expected_status_code=status.HTTP_201_CREATED)
+        self.balance_increase_request = BalanceIncreaseRequestModel.objects.last()
 
 
-class RechargeStatusChangeWithAuthTestCase(BaseRechargeStatusChangeTestCase, AdminAuthMixins):
+class BalanceIncreaseApprovalWithAuthTestCase(BaseBalanceIncreaseApprovalTestCase, AdminAuthMixins):
 
     def setUp(self):
+        super().setUp()
         self.login()
-        self.set_admin_authorization()
-        return super().setUp()
 
-    def test_approve_recharge_as_admin(self):
-        response = self.client.patch(self.recharge_status_change_accepted_url)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK, msg=response.json())
-        self.recharge.refresh_from_db()
-        self.assertEqual(self.recharge.status, BalanceIncreaseRequestModel.STATUS_ACCEPTED)
+    def test_approve_as_admin(self):
+        self.approve_increase_balance_request(pk=self.balance_increase_request.pk,
+                                              expected_status_code=status.HTTP_200_OK)
+        self.balance_increase_request.refresh_from_db()
+        self.assertEqual(self.balance_increase_request.status, BalanceIncreaseRequestModel.STATUS_ACCEPTED)
         self.seller.refresh_from_db()
         self.assertEqual(float(self.seller.balance), 130.00)  # Original balance + recharge amount
 
-    def test_reject_recharge_as_admin(self):
-        response = self.client.patch(self.recharge_status_change_rejected_url)
+    def test_reject_as_admin(self):
+        self.reject_increase_balance_request(pk=self.balance_increase_request.pk,
+                                             expected_status_code=status.HTTP_200_OK)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, msg=response.json())
-        self.recharge.refresh_from_db()
-        self.assertEqual(self.recharge.status, BalanceIncreaseRequestModel.STATUS_REJECTED)
+        self.balance_increase_request.refresh_from_db()
+        self.assertEqual(self.balance_increase_request.status, BalanceIncreaseRequestModel.STATUS_REJECTED)
         self.seller.refresh_from_db()
         self.assertEqual(float(self.seller.balance), 100.00)  # Original balance, because request rejected
 
 
-class RechargeStatusChangeNoAuthTestCase(BaseRechargeStatusChangeTestCase):
+class BalanceIncreaseApprovalNoAuthTestCase(BaseBalanceIncreaseApprovalTestCase):
+    def test_approve_as_non_admin_401_unauthorized(self):
+        self.approve_increase_balance_request(pk=self.balance_increase_request.pk,
+                                              expected_status_code=status.HTTP_403_FORBIDDEN)
 
-    def test_approve_recharge_as_non_admin_401_unauthorized(self):
-        # Attempt to approve without admin privileges
-        response = self.client.patch(self.recharge_status_change_accepted_url)
-
-        # Verify that access is forbidden
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED, msg=response.json())
+    def test_reject_as_non_admin_401_unauthorized(self):
+        self.approve_increase_balance_request(pk=self.balance_increase_request.pk,
+                                              expected_status_code=status.HTTP_403_FORBIDDEN)

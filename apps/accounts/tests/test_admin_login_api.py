@@ -37,7 +37,7 @@ class AdminLoginAPITest(APITestCase, AdminAuthMixins):
 
     def test_incorrect_password_login_failure(self):
         # Login attempt with incorrect password for admin user
-        response = self.client.post(
+        self.client.post(
             self.login_url, {"username": "admin_user", "password": "wrongpassword"},
             format="json",
         )

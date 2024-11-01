@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 
 from apps.accounting.models import AccountEntry
-from apps.accounts.models import SellerProfile
+from apps.accounts.tests.utils import AccountsTestUtils
 from apps.transactions.models import BalanceIncreaseRequestModel, Sell
 
 User = get_user_model()
@@ -12,8 +12,7 @@ User = get_user_model()
 class AccountEntryModelTest(TestCase):
 
     def setUp(self):
-        self.user = User.objects.create(username="seller", email="seller@example.com")
-        self.seller = SellerProfile.objects.create(user=self.user, balance=100.00)
+        self.user, self.seller = AccountsTestUtils.create_seller()
 
     def test_account_entry_recharge(self):
         # Create a recharge and approve it

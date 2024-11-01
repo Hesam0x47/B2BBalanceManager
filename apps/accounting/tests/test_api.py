@@ -4,24 +4,21 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from apps.accounting.models import AccountEntry
-from apps.accounts.models import SellerProfile
+from apps.accounts.tests.utils import AccountsTestUtils
 from apps.transactions.models import BalanceIncreaseRequestModel, Sell
 from utils.test_mixins import AdminAuthMixins
 
 User = get_user_model()
 
-
 class AccountEntryAPITest(APITestCase, AdminAuthMixins):
 
     def setUp(self):
         # Set up a seller and authenticate
-        self.user = User.objects.create_user(username="seller", password="password", email="seller@example.com")
+        self.seller_user, self.seller = AccountsTestUtils.create_seller(username="seller", password="password", email="seller@example.com")
+
         self.client.login(username="seller", password="password")
 
-        self.seller = SellerProfile.objects.create(user=self.user, balance=100.00)
-
         self.login()
-        self.set_admin_authorization()
 
     def test_account_entry_list(self):
         # Create a recharge and approve it
@@ -44,7 +41,7 @@ class AccountEntryAPITest(APITestCase, AdminAuthMixins):
         Sell.objects.create(seller=self.seller, phone_number=customer_phone_number, amount=20.00)
 
         # Get the created AccountEntry for the sell transaction
-        account_entry = AccountEntry.objects.get(user=self.user, entry_type=AccountEntry.SELL)
+        account_entry = AccountEntry.objects.get(user=self.seller_user, entry_type=AccountEntry.SELL)
         url = reverse('accountentry-detail', args=[account_entry.id])  # Detail endpoint
         response = self.client.get(url)
 

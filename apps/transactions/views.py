@@ -1,13 +1,27 @@
 from rest_framework import status, generics
+from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 
 from .models import BalanceIncreaseRequestModel, Sell
 from .serializers import BalanceIncreaseRequestSerializer, ChargeCustomerSerializer
+from ..accounts.permissions import IsSeller
 
 
 class BalanceIncreaseRequestListCreateView(generics.ListCreateAPIView):
     queryset = BalanceIncreaseRequestModel.objects.all()
     serializer_class = BalanceIncreaseRequestSerializer
+
+    def get_permissions(self):
+        # Apply IsAdmin permission for GET requests
+        if self.request.method == 'GET':
+            permission_classes = [IsAdminUser]
+        # Apply IsSeller permission for POST requests
+        elif self.request.method == 'POST':
+            permission_classes = [IsSeller]
+        else:
+            permission_classes = [IsAdminUser]
+
+        return [permission() for permission in permission_classes]
 
 
 class BalanceIncreaseRequestApprovalView(generics.UpdateAPIView):
@@ -33,6 +47,4 @@ class BalanceIncreaseRequestApprovalView(generics.UpdateAPIView):
 class ChargeCustomerView(generics.CreateAPIView):
     queryset = Sell.objects.all()
     serializer_class = ChargeCustomerSerializer
-
-    def post(self, request, *args, **kwargs):
-        return super().post(request, *args, **kwargs)
+    permission_classes = [IsSeller]

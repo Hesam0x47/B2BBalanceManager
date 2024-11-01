@@ -1,8 +1,8 @@
 from decimal import Decimal
 
-from django.core.exceptions import ValidationError
 from django.db import models
 from django.db import transaction as db_transaction
+from rest_framework.exceptions import ValidationError
 
 from apps.accounting.models import AccountEntry
 from apps.accounts.models import SellerProfile
@@ -11,8 +11,9 @@ from utils.helpers import acquire_thread_safe_lock
 
 class Sell(models.Model):
     seller = models.ForeignKey(SellerProfile, related_name="sales", on_delete=models.CASCADE)
-    phone_number = models.CharField(max_length=15, unique=True)
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    phone_number = models.CharField(max_length=15)
+    amount = models.DecimalField(max_digits=10, decimal_places=2) # todo: CHANGE THIS FIELD TO PositiveIntegerField
+                                                                  #  and limit it to 5000, 1000,20000,50000
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __process_sale(self):

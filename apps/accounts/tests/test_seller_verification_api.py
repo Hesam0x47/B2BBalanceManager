@@ -3,6 +3,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from apps.accounts.tests.utils import AccountsTestUtils
 from utils.test_mixins import AdminAuthMixins, SellerUserMixins
 
 User = get_user_model()
@@ -10,13 +11,11 @@ User = get_user_model()
 
 class SellerVerificationAPITest(APITestCase, AdminAuthMixins, SellerUserMixins):
     def setUp(self):
-        self.login()
-
-        self.verified_seller_user, self.verified_seller_profile = self.create_seller_profile(
+        self.verified_seller_user, self.verified_seller_profile = AccountsTestUtils.create_seller(
             username="verified_seller",
             is_verified=True,
         )
-        self.non_verified_seller_user, self.non_verified_seller_profile = self.create_seller_profile(
+        self.non_verified_seller_user, self.non_verified_seller_profile = AccountsTestUtils.create_seller(
             username="non_verified_seller",
             is_verified=False,
         )
@@ -27,7 +26,7 @@ class SellerVerificationAPITest(APITestCase, AdminAuthMixins, SellerUserMixins):
         return super().setUp()
 
     def test_verify_seller_as_admin(self):
-        self.set_admin_authorization()
+        self.login()
 
         # Admin attempts to verify the seller
         response = self.client.patch(self.verify_seller_url)
@@ -37,7 +36,6 @@ class SellerVerificationAPITest(APITestCase, AdminAuthMixins, SellerUserMixins):
         self.assertTrue(self.non_verified_seller_profile.is_verified)
 
     def test_verify_seller_as_non_admin(self):
-        self.unset_authorization()
         self.login_seller(self.verified_seller_user.username)
         self.set_seller_authorization_token(self.verified_seller_token)
 
@@ -50,7 +48,6 @@ class SellerVerificationAPITest(APITestCase, AdminAuthMixins, SellerUserMixins):
         self.assertFalse(self.non_verified_seller_profile.is_verified)
 
     def test_verify_seller_without_authentication(self):
-        self.unset_authorization()
         response = self.client.patch(self.verify_seller_url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED, msg=response.json())
 

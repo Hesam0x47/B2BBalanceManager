@@ -3,6 +3,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from apps.accounts.tests.utils import AccountsTestUtils
 from utils.test_mixins import SellerUserMixins
 
 User = get_user_model()
@@ -14,13 +15,13 @@ class SellerLoginAPITest(APITestCase, SellerUserMixins):
         self.login_url = reverse("seller-login")
 
         # Create a verified seller
-        self.verified_seller_user, self.verified_seller_profile = self.create_seller_profile(
+        self.verified_seller_user, self.verified_seller_profile = AccountsTestUtils.create_seller(
             username="verified_seller",
             is_verified=True,
         )
 
         # Create an unverified seller
-        self.unverified_seller_user, self.unverified_seller_profile = self.create_seller_profile(
+        self.unverified_seller_user, self.unverified_seller_profile = AccountsTestUtils.create_seller(
             username="unverified_seller",
             is_verified=False,
         )
@@ -39,8 +40,10 @@ class SellerLoginAPITest(APITestCase, SellerUserMixins):
 
     def test_unverified_seller_login_failure(self):
         # Login attempt with unverified seller credentials
-        _, response = self.login_seller(username=self.unverified_seller_user.username,
-                                        expected_status_code=status.HTTP_400_BAD_REQUEST)
+        _, response = self.login_seller(
+            username=self.unverified_seller_user.username,
+            expected_status_code=status.HTTP_400_BAD_REQUEST,
+        )
 
         # Check if login fails due to unverified account
         # self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
