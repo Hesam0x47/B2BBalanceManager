@@ -5,7 +5,7 @@ from rest_framework.test import APITestCase
 
 from apps.accounting.models import AccountEntry
 from apps.accounts.models import SellerProfile, CustomerProfile
-from apps.transactions.models import Recharge, Sell
+from apps.transactions.models import CreditIncreaseRequestModel, Sell
 from utils.test_mixins import AdminAuthMixins
 
 User = get_user_model()
@@ -25,7 +25,7 @@ class AccountEntryAPITest(APITestCase, AdminAuthMixins):
 
     def test_account_entry_list(self):
         # Create a recharge and approve it
-        recharge = Recharge.objects.create(seller=self.seller, amount=50.00)
+        recharge = CreditIncreaseRequestModel.objects.create(seller=self.seller, amount=50.00)
         recharge.approve()  # This should create an AccountEntry
 
         url = reverse('accountentry-list')  # List endpoint

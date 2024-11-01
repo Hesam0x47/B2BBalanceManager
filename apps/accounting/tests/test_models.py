@@ -4,7 +4,7 @@ from django.test import TestCase
 
 from apps.accounting.models import AccountEntry
 from apps.accounts.models import SellerProfile, CustomerProfile
-from apps.transactions.models import Recharge, Sell
+from apps.transactions.models import CreditIncreaseRequestModel, Sell
 
 User = get_user_model()
 
@@ -17,7 +17,7 @@ class AccountEntryModelTest(TestCase):
 
     def test_account_entry_recharge(self):
         # Create a recharge and approve it
-        recharge = Recharge.objects.create(seller=self.seller, amount=50.00)
+        recharge = CreditIncreaseRequestModel.objects.create(seller=self.seller, amount=50.00)
         recharge.approve()  # This should create an AccountEntry
 
         # Verify AccountEntry was created with correct values

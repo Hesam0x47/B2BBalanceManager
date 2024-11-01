@@ -3,7 +3,7 @@ from django.db import transaction
 from django.test import TestCase
 
 from apps.accounts.models import User, SellerProfile, CustomerProfile
-from apps.transactions.models import Recharge, Sell
+from apps.transactions.models import CreditIncreaseRequestModel, Sell
 
 
 class RechargeModelTest(TestCase):
@@ -13,14 +13,14 @@ class RechargeModelTest(TestCase):
 
     def test_recharge_pending(self):
         # Create a recharge that is pending
-        recharge = Recharge.objects.create(seller=self.seller, amount=50.00)
+        recharge = CreditIncreaseRequestModel.objects.create(seller=self.seller, amount=50.00)
         self.assertEqual(recharge.status, "pending")
         self.seller.refresh_from_db()
         self.assertEqual(self.seller.balance, 100.00)  # Balance shouldn't change for pending recharge
 
     def test_recharge_accepted(self):
         # Approve the recharge and check the balance update
-        recharge = Recharge.objects.create(seller=self.seller, amount=50.00)
+        recharge = CreditIncreaseRequestModel.objects.create(seller=self.seller, amount=50.00)
         recharge.approve()  # This should update the seller balance
         self.seller.refresh_from_db()
         self.assertEqual(recharge.status, "accepted")
@@ -28,7 +28,7 @@ class RechargeModelTest(TestCase):
 
     def test_recharge_accepted_twice_recharge_once(self):
         # Approve the recharge and check the balance update
-        recharge = Recharge.objects.create(seller=self.seller, amount=50.00)
+        recharge = CreditIncreaseRequestModel.objects.create(seller=self.seller, amount=50.00)
 
         recharge.approve()  # This should update the seller balance
         self.seller.refresh_from_db()
@@ -42,7 +42,7 @@ class RechargeModelTest(TestCase):
 
     def test_recharge_rejected(self):
         # Reject the recharge and ensure no balance update
-        recharge = Recharge.objects.create(seller=self.seller, amount=50.00)
+        recharge = CreditIncreaseRequestModel.objects.create(seller=self.seller, amount=50.00)
         recharge.reject()
         self.seller.refresh_from_db()
         self.assertEqual(recharge.status, "rejected")
@@ -50,7 +50,7 @@ class RechargeModelTest(TestCase):
 
     def test_recharge_rejected_twice_no_side_effect(self):
         # Reject the recharge and ensure no balance update
-        recharge = Recharge.objects.create(seller=self.seller, amount=50.00)
+        recharge = CreditIncreaseRequestModel.objects.create(seller=self.seller, amount=50.00)
         recharge.reject()
         self.seller.refresh_from_db()
         self.assertEqual(recharge.status, "rejected")

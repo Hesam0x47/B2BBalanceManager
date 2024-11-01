@@ -89,7 +89,7 @@ class Sell(models.Model):
         return f"Sell from {self.seller.user.username} to {self.customer.user.username} - ${self.amount}"
 
 
-class Recharge(models.Model):
+class CreditIncreaseRequestModel(models.Model):
     STATUS_PENDING = 'pending'
     STATUS_ACCEPTED = 'accepted'
     STATUS_REJECTED = 'rejected'
@@ -101,7 +101,6 @@ class Recharge(models.Model):
 
     seller = models.ForeignKey(SellerProfile, related_name="recharges", on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
-    is_successful = models.BooleanField(default=False)
     timestamp = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=STATUS_PENDING)
 

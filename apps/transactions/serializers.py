@@ -1,17 +1,19 @@
 from rest_framework import serializers
 
-from .models import Recharge, Sell
+from .models import CreditIncreaseRequestModel, Sell
 from ..accounts.models import SellerProfile
 
 
-class RechargeSerializer(serializers.ModelSerializer):
-    seller = serializers.SlugRelatedField(queryset=SellerProfile.objects.select_related("user"),
-                                          slug_field='user__username')
+class CreditIncreaseRequestSerializer(serializers.ModelSerializer):
+    seller = serializers.SlugRelatedField(
+        queryset=SellerProfile.objects.select_related("user"),
+        slug_field='user__username',
+    )
 
     class Meta:
-        model = Recharge
+        model = CreditIncreaseRequestModel
         fields = ['id', 'seller', 'amount', 'status', 'timestamp']
-        read_only_fields = ['status', 'created_at']
+        read_only_fields = ['status']
 
 
 class SellSerializer(serializers.ModelSerializer):

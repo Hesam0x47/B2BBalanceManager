@@ -4,27 +4,27 @@ from rest_framework import status
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 
-from .models import Recharge
-from .serializers import RechargeSerializer
+from .models import CreditIncreaseRequestModel
+from .serializers import CreditIncreaseRequestSerializer
 
 
-class RechargeListCreateView(generics.ListCreateAPIView):
-    queryset = Recharge.objects.all()
-    serializer_class = RechargeSerializer
+class CreditIncreaseRequestListCreateView(generics.ListCreateAPIView):
+    queryset = CreditIncreaseRequestModel.objects.all()
+    serializer_class = CreditIncreaseRequestSerializer
 
 
-class RechargeChangeStatusView(generics.UpdateAPIView):
+class CreditIncreaseRequestApprovalView(generics.UpdateAPIView):
     # TODO: add authentication/authorization
-    queryset = Recharge.objects.filter(status=Recharge.STATUS_PENDING)
-    serializer_class = RechargeSerializer
+    queryset = CreditIncreaseRequestModel.objects.filter(status=CreditIncreaseRequestModel.STATUS_PENDING)
+    serializer_class = CreditIncreaseRequestSerializer
     lookup_field = 'pk'
     def update(self, request, *args, **kwargs):
-        recharge:Recharge = self.get_object()
+        recharge:CreditIncreaseRequestModel = self.get_object()
         action = kwargs.get("action")
 
-        if action == Recharge.STATUS_ACCEPTED:
+        if action == CreditIncreaseRequestModel.STATUS_ACCEPTED:
             recharge.approve()
-        elif action == Recharge.STATUS_REJECTED:
+        elif action == CreditIncreaseRequestModel.STATUS_REJECTED:
             recharge.reject()
         else:
             return Response({"error": "Invalid action."}, status=status.HTTP_400_BAD_REQUEST)
