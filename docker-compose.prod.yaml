@@ -9,5 +9,6 @@ services:
     command: scripts/run.prod.sh
     environment:
       - DATABASE_HOST=${DATABASE_HOST:-db}
+      - REDIS_ADDR=${REDIS_ADDR:-redis}
     networks:
       - backend
