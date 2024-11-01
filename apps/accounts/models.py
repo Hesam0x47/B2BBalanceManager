@@ -1,30 +1,43 @@
+from typing import Final
+
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
 class User(AbstractUser):
-    # Add any common fields here if needed
-    pass
+    ADMIN = 'admin'
+    SELLER = 'seller'
+
+    ROLE_CHOICES = [
+        (ADMIN, 'Admin'),
+        (SELLER, 'Seller'),
+    ]
+
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES)
+
+    def __str__(self):
+        return f"{self.username} ({self.role})"
 
 
-# accounts/models.py
 class SellerProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='seller_profile')
+    RELATED_NAME: Final[str] = 'seller_profile'
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name=RELATED_NAME)
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     company_name = models.CharField(max_length=255, blank=True, null=True)
-    is_verified = models.BooleanField(default=False)
+    is_verified = models.BooleanField(default=False)  # TODO: add new api for seller verification
 
     def __str__(self):
         return f"Seller: {self.user.username}"
 
 
 class CustomerProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='customer_profile')
-    address = models.TextField(blank=True, null=True)
-    loyalty_points = models.IntegerField(default=0)
+    # we do not need user field because the application is B2B and there is no end-user
+    # user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='customer_profile')
+    phone_number = models.CharField(max_length=15, unique=True)  # Unique identifier for customers in B2B
 
     def __str__(self):
-        return f"Customer: {self.user.username}"
+        return f"Customer: {self.phone_number}"
 
 
 class AdminProfile(models.Model):
@@ -33,12 +46,3 @@ class AdminProfile(models.Model):
 
     def __str__(self):
         return f"Admin: {self.user.username}"
-
-# class Seller(AbstractUser):
-#     email = models.EmailField(unique=True, null=False, blank=False)
-#     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-#     company_name = models.CharField(max_length=255, blank=True, null=True)
-#     is_verified = models.BooleanField(default=True)  # TODO: add new api for seller verification
-#
-#     def __str__(self):
-#         return f"{self.username} - Balance: {self.balance}"

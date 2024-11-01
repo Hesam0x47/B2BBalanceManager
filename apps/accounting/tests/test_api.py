@@ -6,11 +6,12 @@ from rest_framework.test import APITestCase
 from apps.accounting.models import AccountEntry
 from apps.accounts.models import SellerProfile, CustomerProfile
 from apps.transactions.models import Recharge, Sell
+from utils.test_mixins import AdminAuthMixins
 
 User = get_user_model()
 
 
-class AccountEntryAPITest(APITestCase):
+class AccountEntryAPITest(APITestCase, AdminAuthMixins):
 
     def setUp(self):
         # Set up a seller and authenticate
@@ -18,6 +19,9 @@ class AccountEntryAPITest(APITestCase):
         self.client.login(username="seller", password="password")
 
         self.seller = SellerProfile.objects.create(user=self.user, balance=100.00)
+
+        self.login()
+        self.set_admin_authorization()
 
     def test_account_entry_list(self):
         # Create a recharge and approve it
@@ -28,7 +32,7 @@ class AccountEntryAPITest(APITestCase):
         response = self.client.get(url)
 
         # Verify the API returns the correct account entry data
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, msg=response.json())
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]['entry_type'], 'recharge')
         self.assertEqual(response.data[0]['amount'], "50.00")
@@ -36,10 +40,10 @@ class AccountEntryAPITest(APITestCase):
 
     def test_account_entry_detail(self):
         # Create a sell transaction
-        customer_user = User.objects.create(username="customer", email="customer@example.com")
-        customer = CustomerProfile.objects.create(user=customer_user)
+        customer_user = "09999999999"
+        customer = CustomerProfile.objects.create(phone_number=customer_user)
 
-        sell = Sell.objects.create(seller=self.seller, customer=customer, amount=20.00)
+        Sell.objects.create(seller=self.seller, customer=customer, amount=20.00)
 
         # Get the created AccountEntry for the sell transaction
         account_entry = AccountEntry.objects.get(user=self.user, entry_type=AccountEntry.SELL)
@@ -47,7 +51,7 @@ class AccountEntryAPITest(APITestCase):
         response = self.client.get(url)
 
         # Verify the API returns the correct account entry data
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, msg=response.json())
         self.assertEqual(response.data['entry_type'], 'sell')
         self.assertEqual(response.data['amount'], "-20.00")
         self.assertEqual(response.data['balance_after_entry'], "80.00")

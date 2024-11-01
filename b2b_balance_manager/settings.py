@@ -10,7 +10,10 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 import os
+from datetime import timedelta
 from pathlib import Path
+
+from rest_framework.permissions import IsAdminUser
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -38,8 +41,12 @@ INSTALLED_APPS = [
 
     # 3rd parties
     'drf_spectacular',
+    'rest_framework',
+    'rest_framework_simplejwt',
 
     # our apps
+    'utils',  # just a helper app
+
     'apps.transactions',
     'apps.accounts',
     'apps.accounting',
@@ -86,7 +93,7 @@ DATABASES = {
         'PASSWORD': os.getenv('DATABASE_PASSWORD', 'mypassword'),
         'HOST': os.getenv('DATABASE_HOST', 'localhost'),
         'PORT': os.getenv('DATABASE_PORT', '5432'),
-        'ATOMIC_REQUESTS': True, # TODO: check possible bottle-necks
+        'ATOMIC_REQUESTS': True,  # TODO: check possible bottle-necks
     }
 }
 
@@ -140,7 +147,18 @@ CACHES = {
 }
 
 REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAdminUser',
+    ),
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
 
 SPECTACULAR_SETTINGS = {

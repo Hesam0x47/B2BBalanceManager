@@ -4,9 +4,10 @@ from rest_framework.test import APITestCase
 
 from apps.accounts.models import SellerProfile, User
 from apps.transactions.models import Recharge
+from utils.test_mixins import AdminAuthMixins
 
 
-class RechargeAPITestCase(APITestCase):
+class RechargeAPITestCase(APITestCase, AdminAuthMixins):
 
     def setUp(self):
         # Create a seller instance for testing
@@ -14,6 +15,8 @@ class RechargeAPITestCase(APITestCase):
         self.seller_user = User.objects.create(username=self.seller_username, email="sellar@sample.com")
         self.seller = SellerProfile.objects.create(balance=100.00, user=self.seller_user)
         self.recharge_url = reverse('recharge-list-create')
+        self.login()
+        self.set_admin_authorization()
 
     def test_get_recharge_list(self):
         # Create a few recharge instances for testing
@@ -55,7 +58,7 @@ class RechargeAPITestCase(APITestCase):
     def test_create_recharge_invalid_seller(self):
         # Prepare payload with an invalid seller_id
         payload = {
-            'seller':'invalid-server-id',  # Non-existent seller ID
+            'seller': 'invalid-server-id',  # Non-existent seller ID
             'amount': '30.00'
         }
 
@@ -63,25 +66,37 @@ class RechargeAPITestCase(APITestCase):
         response = self.client.post(self.recharge_url, payload, format='json')
 
         # Verify the response status and error message
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, msg=response.json())
         self.assertIn('seller', response.data)  # Check that the error message mentions the seller field
 
 
-class RechargeStatusChangeTestCase(APITestCase):
-
+class BaseRechargeStatusChangeTestCase(APITestCase):
     def setUp(self):
         # Create a seller and admin user
         self.seller_username = "seller"
         self.seller_user = User.objects.create(username=self.seller_username, email="sellar@sample.com")
         self.seller = SellerProfile.objects.create(user=self.seller_user, balance=100.00)
-        self.admin_user = User.objects.create_superuser(username='admin', password='adminpass')
         self.recharge = Recharge.objects.create(seller=self.seller, amount=30.00)
-        self.recharge_status_change_accepted_url = reverse('recharge-change-status', kwargs={"pk":self.recharge.id, "action": Recharge.STATUS_ACCEPTED })
-        self.recharge_status_change_rejected_url = reverse('recharge-change-status', kwargs={"pk":self.recharge.id, "action": Recharge.STATUS_REJECTED })
+        self.recharge_status_change_accepted_url = reverse(
+            'recharge-change-status',
+            kwargs={"pk": self.recharge.id,
+                    "action": Recharge.STATUS_ACCEPTED},
+        )
+        self.recharge_status_change_rejected_url = reverse(
+            'recharge-change-status',
+            kwargs={"pk": self.recharge.id,
+                    "action": Recharge.STATUS_REJECTED},
+        )
+
+
+class RechargeStatusChangeWithAuthTestCase(BaseRechargeStatusChangeTestCase, AdminAuthMixins):
+
+    def setUp(self):
+        self.login()
+        self.set_admin_authorization()
+        return super().setUp()
 
     def test_approve_recharge_as_admin(self):
-        self.client.login(username='admin', password='adminpass')
-
         response = self.client.patch(self.recharge_status_change_accepted_url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK, msg=response.json())
@@ -90,16 +105,7 @@ class RechargeStatusChangeTestCase(APITestCase):
         self.seller.refresh_from_db()
         self.assertEqual(float(self.seller.balance), 130.00)  # Original balance + recharge amount
 
-    def test_approve_recharge_as_non_admin(self):
-        # Attempt to approve without admin privileges
-        response = self.client.post(self.recharge_status_change_accepted_url)
-
-        # Verify that access is forbidden
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
     def test_reject_recharge_as_admin(self):
-        self.client.login(username='admin', password='adminpass')
-
         response = self.client.patch(self.recharge_status_change_rejected_url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK, msg=response.json())
@@ -107,3 +113,13 @@ class RechargeStatusChangeTestCase(APITestCase):
         self.assertEqual(self.recharge.status, Recharge.STATUS_REJECTED)
         self.seller.refresh_from_db()
         self.assertEqual(float(self.seller.balance), 100.00)  # Original balance, because request rejected
+
+
+class RechargeStatusChangeNoAuthTestCase(BaseRechargeStatusChangeTestCase):
+
+    def test_approve_recharge_as_non_admin_401_unauthorized(self):
+        # Attempt to approve without admin privileges
+        response = self.client.patch(self.recharge_status_change_accepted_url)
+
+        # Verify that access is forbidden
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED, msg=response.json())

@@ -15,7 +15,6 @@ class RechargeListCreateView(generics.ListCreateAPIView):
 
 class RechargeChangeStatusView(generics.UpdateAPIView):
     # TODO: add authentication/authorization
-    permission_classes = [IsAdminUser]
     queryset = Recharge.objects.filter(status=Recharge.STATUS_PENDING)
     serializer_class = RechargeSerializer
     lookup_field = 'pk'

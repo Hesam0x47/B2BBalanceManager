@@ -16,7 +16,7 @@ class SellerProfileAdmin(admin.ModelAdmin):
 
 @admin.register(CustomerProfile)
 class CustomerProfileAdmin(admin.ModelAdmin):
-    list_display = ['user', 'address', 'loyalty_points']
+    list_display = ['phone_number']
 
 
 @admin.register(AdminProfile)

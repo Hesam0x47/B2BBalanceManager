@@ -66,8 +66,8 @@ class SellModelTest(TestCase):
     def setUp(self):
         self.seller_user = User.objects.create(username="seller", email="seller@example.com")
         self.seller = SellerProfile.objects.create(user=self.seller_user, balance=100.00)
-        self.customer_user = User.objects.create(username="customer", email="customer@example.com")
-        self.customer = CustomerProfile.objects.create(user=self.customer_user)
+        phone_number = "09999999999"
+        self.customer = CustomerProfile.objects.create(phone_number=phone_number)
 
     def test_sell_transaction(self):
         # Test a valid sell transaction that reduces seller's balance
@@ -86,8 +86,8 @@ class DoubleSpendingTest(TestCase):
     def setUp(self):
         self.seller_user = User.objects.create(username="seller", email="seller@example.com")
         self.seller = SellerProfile.objects.create(user=self.seller_user, balance=100.00)
-        self.customer_user = User.objects.create(username="customer", email="customer@example.com")
-        self.customer = CustomerProfile.objects.create(user=self.customer_user)
+        phone_number = "09999999999"
+        self.customer = CustomerProfile.objects.create(phone_number=phone_number)
 
     def test_single_sell_transaction(self):
         Sell.objects.create(seller=self.seller, customer=self.customer, amount=20.00)

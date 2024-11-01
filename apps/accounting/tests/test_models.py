@@ -28,8 +28,8 @@ class AccountEntryModelTest(TestCase):
 
     def test_account_entry_sell(self):
         # Create a sell transaction
-        customer_user = User.objects.create(username="customer", email="customer@example.com")
-        customer = CustomerProfile.objects.create(user=customer_user)
+        phone_number = "09999999999"
+        customer = CustomerProfile.objects.create(phone_number=phone_number)
 
         sell = Sell.objects.create(seller=self.seller, customer=customer, amount=20.00)
 

@@ -1,12 +1,18 @@
 from django.urls import path
-from .views import (
-    SellerProfileListCreateView,
-    # CustomerProfileListCreateView,
-    # AdminProfileListCreateView,
-)
+
+from .views.admin_login import AdminTokenObtainPairView
+from .views.seller_login import SellerLoginView
+from .views.seller_profile import SellerProfileListView
+from .views.seller_registration import SellerRegistrationView
+from .views.seller_verification import SellerVerificationView
 
 urlpatterns = [
-    path('sellers/', SellerProfileListCreateView.as_view(), name='seller-list-create'),
-    # path('customers/', CustomerProfileListCreateView.as_view(), name='customer-list-create'),
-    # path('admins/', AdminProfileListCreateView.as_view(), name='admin-list-create'),
+    path('admin/login/', AdminTokenObtainPairView.as_view(), name='admin-login'),
+    path('admin/verify-seller/<int:pk>/', SellerVerificationView.as_view(), name='verify-seller'),  # Admin-only URL
+
+    path("seller/register/", SellerRegistrationView.as_view(), name="seller-register"),
+    path("seller/login/", SellerLoginView.as_view(), name="seller-login"),
+    path('sellers/', SellerProfileListView.as_view(), name='seller-list'),
+
+    # todo: add logout api for admin and seller
 ]

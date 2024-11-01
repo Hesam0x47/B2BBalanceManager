@@ -1,7 +1,10 @@
+from django.contrib.auth import get_user_model
 from django.db import transaction
 from rest_framework import serializers
 
-from .models import User, SellerProfile, CustomerProfile, AdminProfile
+from ..models import SellerProfile
+
+User = get_user_model()
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -29,19 +32,3 @@ class SellerProfileSerializer(serializers.ModelSerializer):
         seller_profile = SellerProfile.objects.create(user=user, **validated_data)
 
         return seller_profile
-
-
-# class CustomerProfileSerializer(serializers.ModelSerializer):
-#     user = UserSerializer()
-#
-#     class Meta:
-#         model = CustomerProfile
-#         fields = ['user', 'address', 'loyalty_points']
-#
-#
-# class AdminProfileSerializer(serializers.ModelSerializer):
-#     user = UserSerializer()
-#
-#     class Meta:
-#         model = AdminProfile
-#         fields = ['user', 'department']
