@@ -7,7 +7,7 @@ from apps.transactions.models import BalanceIncreaseRequestModel
 from utils.test_mixins import AdminAuthMixins
 
 
-class RechargeAPITestCase(APITestCase, AdminAuthMixins):
+class BalanceIncreaseRequestsAPITestCase(APITestCase, AdminAuthMixins):
 
     def setUp(self):
         # Create a seller instance for testing
