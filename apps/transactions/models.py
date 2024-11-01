@@ -8,7 +8,7 @@ from django.db.models import F
 from apps.accounting.models import AccountEntry
 from apps.accounts.models import SellerProfile
 from apps.accounts.models import SellerProfile, CustomerProfile
-from helpers.lock import acquire_thread_safe_lock
+from utils.helpers import acquire_thread_safe_lock
 
 
 #
