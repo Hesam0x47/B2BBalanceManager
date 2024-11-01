@@ -24,5 +24,5 @@ class ChargeCustomerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Sell
-        fields = ['id', 'seller', 'telephone', 'amount', 'timestamp']
+        fields = ['id', 'seller', 'phone_number', 'amount', 'timestamp']
         read_only_fields = ['timestamp']
