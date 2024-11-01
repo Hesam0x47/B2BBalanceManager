@@ -30,17 +30,15 @@ class TestCompleteUserStoryAPI(BaseTestChargeCustomerAPI, IncreaseBalanceTestMix
         for i in range(self.total_number_of_charges):
 
             amount = round(random.uniform(1, 50), 2)  # Random amount between 1 and 50
-            response = self.charge_customer(amount)
+            seller_index, response = self.charge_customer(amount)
             self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
 
             # Update the total charged amount for the respective seller
-            seller_username = str(response.data['seller'])
-            seller_index = int(seller_username.replace("seller", "")) - 1
             total_sells[seller_index] += amount
 
             if i in random_increase_balance_where:
                 amount = round(random.uniform(1, 10000), 2)
-                response = self.increase_balance(seller_username=seller_username, amount=str(amount))
+                response = self.increase_balance(amount=str(amount))
                 pk = response.data['id']
                 self.login()
                 self.approve_increase_balance_request(pk)

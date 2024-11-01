@@ -35,8 +35,7 @@ class BalanceIncreaseRequestsAPITestCase(APITestCase, AdminAuthMixins, IncreaseB
     def test_increase_balance_success(self):
         token, _ = self.login_seller(self.seller_user.username)
         self.set_seller_authorization_token(token)
-        response = self.increase_balance(self.seller.user.username, amount='30.00',
-                                         expected_status_code=status.HTTP_201_CREATED)
+        response = self.increase_balance(amount='30.00', expected_status_code=status.HTTP_201_CREATED)
 
         # Verify the response status and data
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, msg=response.json())
@@ -51,21 +50,13 @@ class BalanceIncreaseRequestsAPITestCase(APITestCase, AdminAuthMixins, IncreaseB
             msg="balance should not still change, because is has not yet been approved!",
         )
 
-    def test_increase_balance_invalid_seller(self):
-        token, _ = self.login_seller(self.seller_user.username)
-        self.set_seller_authorization_token(token)
-        response = self.increase_balance(seller_username='invalid-server-id', amount='30.00',
-                                         expected_status_code=status.HTTP_400_BAD_REQUEST)
-
-        self.assertIn('seller', response.data)
-
 
 class BaseBalanceIncreaseApprovalTestCase(APITestCase, IncreaseBalanceTestMixins, SellerUserMixins):
     def setUp(self):
         self.seller_user, self.seller = AccountsTestUtils.create_seller()
         token, _ = self.login_seller(username=self.seller_user.username)
         self.set_seller_authorization_token(token)
-        self.increase_balance(self.seller_user.username, amount='30.00', expected_status_code=status.HTTP_201_CREATED)
+        self.increase_balance( amount='30.00', expected_status_code=status.HTTP_201_CREATED)
         self.balance_increase_request = BalanceIncreaseRequestModel.objects.last()
 
 

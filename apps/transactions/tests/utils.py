@@ -8,9 +8,8 @@ BALANCE_INCREASE_REQUESTS_URL = reverse('balance-increase-requests')
 
 class IncreaseBalanceTestMixins:
 
-    def increase_balance(self, seller_username: str, amount: str, expected_status_code=status.HTTP_201_CREATED):
+    def increase_balance(self, amount: str, expected_status_code=status.HTTP_201_CREATED):
         payload = {
-            'seller': seller_username,
             'amount': amount
         }
 

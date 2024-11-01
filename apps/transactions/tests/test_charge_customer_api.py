@@ -56,7 +56,7 @@ class BaseTestChargeCustomerAPI(APITestCase, SellerUserMixins, AdminAuthMixins):
             'phone_number': f"09{random.randint(100000000, 999999999)}"
         }
 
-        return self.client.post(self.charge_customer_url, payload)
+        return seller_index, self.client.post(self.charge_customer_url, payload)
 
 
 class TestChargeCustomerAPI(BaseTestChargeCustomerAPI):
@@ -66,12 +66,11 @@ class TestChargeCustomerAPI(BaseTestChargeCustomerAPI):
         # Run too many random charge requests
         for _ in range(self.total_number_of_charges):
             amount = round(random.uniform(1, 50), 2)  # Random amount between 1 and 50
-            response = self.charge_customer(amount)
+            seller_index, response = self.charge_customer(amount)
             self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
 
             # Update the total charged amount for the respective seller
-            seller_index = int(str(response.data['seller']).replace("seller", ""))
-            seller_totals[seller_index - 1] += amount
+            seller_totals[seller_index] += amount
 
         # Refresh seller profiles to check final balances
         for i, seller_profile in enumerate(self.seller_profiles):
