@@ -3,62 +3,15 @@ from decimal import Decimal
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db import transaction as db_transaction
-from django.db.models import F
 
 from apps.accounting.models import AccountEntry
 from apps.accounts.models import SellerProfile
-from apps.accounts.models import SellerProfile, CustomerProfile
 from utils.helpers import acquire_thread_safe_lock
-
-
-#
-# class Transaction(models.Model):
-#     SELL = 'sell'
-#     RECHARGE = 'recharge'
-#     TRANSACTION_TYPES = [
-#         (SELL, 'Sell'),
-#         (RECHARGE, 'Recharge'),
-#     ]
-#
-#     seller = models.ForeignKey(SellerProfile, related_name="transactions", on_delete=models.CASCADE)
-#     transaction_type = models.CharField(max_length=10, choices=TRANSACTION_TYPES)
-#     amount = models.DecimalField(max_digits=10, decimal_places=2)
-#     timestamp = models.DateTimeField(auto_now_add=True)
-#
-#     @transaction.atomic
-#     def save(self, *args, **kwargs):
-#         """
-#         Saves the transaction object to the database
-#
-#         Use atomic transaction to prevent double spending
-#         :param args:
-#         :param kwargs:
-#         :return:
-#         """
-#         with acquire_thread_safe_lock(f'seller-{self.seller.id}-lock'):
-#             # Lock the seller row to prevent concurrent updates
-#             seller = SellerProfile.objects.select_for_update().get(id=self.seller.id)
-#
-#             if self.transaction_type == self.SELL:
-#                 # Ensure there's enough balance to perform the transaction
-#                 if seller.balance < self.amount:
-#                     raise ValidationError("Insufficient balance for this transaction.")
-#                 seller.balance = F('balance') - self.amount
-#             elif self.transaction_type == self.RECHARGE:
-#                 seller.balance = F('balance') + self.amount
-#
-#             # Save the balance update
-#             seller.save()
-#             super().save(*args, **kwargs)
-#
-#     def __str__(self):
-#         return f"{self.seller.user.username} - {self.transaction_type.capitalize()} - ${self.amount}"
-#
 
 
 class Sell(models.Model):
     seller = models.ForeignKey(SellerProfile, related_name="sales", on_delete=models.CASCADE)
-    customer = models.ForeignKey(CustomerProfile, related_name="purchases", on_delete=models.CASCADE)
+    phone_number = models.CharField(max_length=15, unique=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     timestamp = models.DateTimeField(auto_now_add=True)
 
@@ -69,7 +22,7 @@ class Sell(models.Model):
             if seller.balance < self.amount:
                 raise ValidationError("Insufficient balance for this sale.")
 
-            seller.balance -=  Decimal(self.amount)
+            seller.balance -= Decimal(self.amount)
             seller.save()
 
         # Log the sale in AccountEntry
@@ -83,13 +36,16 @@ class Sell(models.Model):
     @db_transaction.atomic
     def save(self, *args, **kwargs):
         self.__process_sale()
-        super().save(*args, **kwargs)
+
+        # we do not save anything, this model is just handling charge customers phone numbers
+        # and keep the accounting information in accounting app
+        # super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Sell from {self.seller.user.username} to {self.customer.user.username} - ${self.amount}"
+        return f"Sell from {self.seller.user.username} to {self.phone_number} - ${self.amount}"
 
 
-class CreditIncreaseRequestModel(models.Model):
+class BalanceIncreaseRequestModel(models.Model):
     STATUS_PENDING = 'pending'
     STATUS_ACCEPTED = 'accepted'
     STATUS_REJECTED = 'rejected'

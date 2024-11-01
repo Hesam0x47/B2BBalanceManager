@@ -1,43 +1,38 @@
-from django.shortcuts import get_object_or_404
-from rest_framework import generics
-from rest_framework import status
-from rest_framework.permissions import IsAdminUser
+from rest_framework import status, generics
 from rest_framework.response import Response
 
-from .models import CreditIncreaseRequestModel
-from .serializers import CreditIncreaseRequestSerializer
+from .models import BalanceIncreaseRequestModel, Sell
+from .serializers import BalanceIncreaseRequestSerializer, ChargeCustomerSerializer
 
 
-class CreditIncreaseRequestListCreateView(generics.ListCreateAPIView):
-    queryset = CreditIncreaseRequestModel.objects.all()
-    serializer_class = CreditIncreaseRequestSerializer
+class BalanceIncreaseRequestListCreateView(generics.ListCreateAPIView):
+    queryset = BalanceIncreaseRequestModel.objects.all()
+    serializer_class = BalanceIncreaseRequestSerializer
 
 
-class CreditIncreaseRequestApprovalView(generics.UpdateAPIView):
+class BalanceIncreaseRequestApprovalView(generics.UpdateAPIView):
     # TODO: add authentication/authorization
-    queryset = CreditIncreaseRequestModel.objects.filter(status=CreditIncreaseRequestModel.STATUS_PENDING)
-    serializer_class = CreditIncreaseRequestSerializer
+    queryset = BalanceIncreaseRequestModel.objects.filter(status=BalanceIncreaseRequestModel.STATUS_PENDING)
+    serializer_class = BalanceIncreaseRequestSerializer
     lookup_field = 'pk'
+
     def update(self, request, *args, **kwargs):
-        recharge:CreditIncreaseRequestModel = self.get_object()
+        recharge: BalanceIncreaseRequestModel = self.get_object()
         action = kwargs.get("action")
 
-        if action == CreditIncreaseRequestModel.STATUS_ACCEPTED:
+        if action == BalanceIncreaseRequestModel.STATUS_ACCEPTED:
             recharge.approve()
-        elif action == CreditIncreaseRequestModel.STATUS_REJECTED:
+        elif action == BalanceIncreaseRequestModel.STATUS_REJECTED:
             recharge.reject()
         else:
             return Response({"error": "Invalid action."}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(self.get_serializer(recharge).data)
 
-    # def post(self, request, recharge_id, action):
-    #     recharge = get_object_or_404(Recharge, id=recharge_id)
-    #
-    #     if recharge.status != Recharge.STATUS_PENDING:
-    #         return Response({"detail": f"Recharge is already {recharge.status}."}, status=status.HTTP_400_BAD_REQUEST)
-    #
-    #     recharge.process_recharge(**self.kwargs)
-    #
-    #     serializer = RechargeSerializer(recharge)
-    #     return Response(serializer.data, status=status.HTTP_200_OK)
+
+class ChargeCustomerView(generics.CreateAPIView):
+    queryset = Sell.objects.all()
+    serializer_class = ChargeCustomerSerializer
+
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)

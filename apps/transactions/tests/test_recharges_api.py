@@ -3,7 +3,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from apps.accounts.models import SellerProfile, User
-from apps.transactions.models import CreditIncreaseRequestModel
+from apps.transactions.models import BalanceIncreaseRequestModel
 from utils.test_mixins import AdminAuthMixins
 
 
@@ -14,14 +14,14 @@ class RechargeAPITestCase(APITestCase, AdminAuthMixins):
         self.seller_username = "seller"
         self.seller_user = User.objects.create(username=self.seller_username, email="sellar@sample.com")
         self.seller = SellerProfile.objects.create(balance=100.00, user=self.seller_user)
-        self.recharge_url = reverse('credit-increase-requests')
+        self.recharge_url = reverse('balance-increase-requests')
         self.login()
         self.set_admin_authorization()
 
     def test_get_recharge_list(self):
         # Create a few recharge instances for testing
-        CreditIncreaseRequestModel.objects.create(seller=self.seller, amount=20.00)
-        CreditIncreaseRequestModel.objects.create(seller=self.seller, amount=50.00)
+        BalanceIncreaseRequestModel.objects.create(seller=self.seller, amount=20.00)
+        BalanceIncreaseRequestModel.objects.create(seller=self.seller, amount=50.00)
 
         # Send GET request to retrieve the list of recharges
         response = self.client.get(self.recharge_url)
@@ -45,7 +45,7 @@ class RechargeAPITestCase(APITestCase, AdminAuthMixins):
         # Verify the response status and data
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, msg=response.json())
         self.assertEqual(response.data['amount'], '30.00')
-        self.assertEqual(response.data['status'], CreditIncreaseRequestModel.STATUS_PENDING)
+        self.assertEqual(response.data['status'], BalanceIncreaseRequestModel.STATUS_PENDING)
 
         # Check if the seller balance is updated
         self.seller.refresh_from_db()
@@ -76,16 +76,16 @@ class BaseRechargeStatusChangeTestCase(APITestCase):
         self.seller_username = "seller"
         self.seller_user = User.objects.create(username=self.seller_username, email="sellar@sample.com")
         self.seller = SellerProfile.objects.create(user=self.seller_user, balance=100.00)
-        self.recharge = CreditIncreaseRequestModel.objects.create(seller=self.seller, amount=30.00)
+        self.recharge = BalanceIncreaseRequestModel.objects.create(seller=self.seller, amount=30.00)
         self.recharge_status_change_accepted_url = reverse(
-            'credit-increase-requests-approval',
+            'balance-increase-requests-approval',
             kwargs={"pk": self.recharge.id,
-                    "action": CreditIncreaseRequestModel.STATUS_ACCEPTED},
+                    "action": BalanceIncreaseRequestModel.STATUS_ACCEPTED},
         )
         self.recharge_status_change_rejected_url = reverse(
-            'credit-increase-requests-approval',
+            'balance-increase-requests-approval',
             kwargs={"pk": self.recharge.id,
-                    "action": CreditIncreaseRequestModel.STATUS_REJECTED},
+                    "action": BalanceIncreaseRequestModel.STATUS_REJECTED},
         )
 
 
@@ -101,7 +101,7 @@ class RechargeStatusChangeWithAuthTestCase(BaseRechargeStatusChangeTestCase, Adm
 
         self.assertEqual(response.status_code, status.HTTP_200_OK, msg=response.json())
         self.recharge.refresh_from_db()
-        self.assertEqual(self.recharge.status, CreditIncreaseRequestModel.STATUS_ACCEPTED)
+        self.assertEqual(self.recharge.status, BalanceIncreaseRequestModel.STATUS_ACCEPTED)
         self.seller.refresh_from_db()
         self.assertEqual(float(self.seller.balance), 130.00)  # Original balance + recharge amount
 
@@ -110,7 +110,7 @@ class RechargeStatusChangeWithAuthTestCase(BaseRechargeStatusChangeTestCase, Adm
 
         self.assertEqual(response.status_code, status.HTTP_200_OK, msg=response.json())
         self.recharge.refresh_from_db()
-        self.assertEqual(self.recharge.status, CreditIncreaseRequestModel.STATUS_REJECTED)
+        self.assertEqual(self.recharge.status, BalanceIncreaseRequestModel.STATUS_REJECTED)
         self.seller.refresh_from_db()
         self.assertEqual(float(self.seller.balance), 100.00)  # Original balance, because request rejected
 

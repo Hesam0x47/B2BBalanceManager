@@ -1,10 +1,11 @@
 from django.urls import path
 
-from .views import CreditIncreaseRequestListCreateView, CreditIncreaseRequestApprovalView
+from .views import BalanceIncreaseRequestListCreateView, BalanceIncreaseRequestApprovalView, ChargeCustomerView
 
 urlpatterns = [
-    path('credit-increase-requests/', CreditIncreaseRequestListCreateView.as_view(), name='credit-increase-requests'),
-    path('credit-increase-requests/<int:pk>/<str:action>/', CreditIncreaseRequestApprovalView.as_view(), name='credit-increase-requests-approval'),
+    path('balance-increase-requests/', BalanceIncreaseRequestListCreateView.as_view(), name='balance-increase-requests'),
+    path('balance-increase-requests/<int:pk>/<str:action>/', BalanceIncreaseRequestApprovalView.as_view(), name='balance-increase-requests-approval'),
 
     # TODO: add increase customers balance (charge sim-card)  API
+    path('charge-customer/', ChargeCustomerView.as_view(), name='charge-customer'),
 ]

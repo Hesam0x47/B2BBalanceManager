@@ -4,8 +4,8 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from apps.accounting.models import AccountEntry
-from apps.accounts.models import SellerProfile, CustomerProfile
-from apps.transactions.models import CreditIncreaseRequestModel, Sell
+from apps.accounts.models import SellerProfile
+from apps.transactions.models import BalanceIncreaseRequestModel, Sell
 from utils.test_mixins import AdminAuthMixins
 
 User = get_user_model()
@@ -25,7 +25,7 @@ class AccountEntryAPITest(APITestCase, AdminAuthMixins):
 
     def test_account_entry_list(self):
         # Create a recharge and approve it
-        recharge = CreditIncreaseRequestModel.objects.create(seller=self.seller, amount=50.00)
+        recharge = BalanceIncreaseRequestModel.objects.create(seller=self.seller, amount=50.00)
         recharge.approve()  # This should create an AccountEntry
 
         url = reverse('accountentry-list')  # List endpoint
@@ -39,11 +39,9 @@ class AccountEntryAPITest(APITestCase, AdminAuthMixins):
         self.assertEqual(response.data[0]['balance_after_entry'], "150.00")
 
     def test_account_entry_detail(self):
-        # Create a sell transaction
-        customer_user = "09999999999"
-        customer = CustomerProfile.objects.create(phone_number=customer_user)
+        customer_phone_number = "09999999999"
 
-        Sell.objects.create(seller=self.seller, customer=customer, amount=20.00)
+        Sell.objects.create(seller=self.seller, phone_number=customer_phone_number, amount=20.00)
 
         # Get the created AccountEntry for the sell transaction
         account_entry = AccountEntry.objects.get(user=self.user, entry_type=AccountEntry.SELL)

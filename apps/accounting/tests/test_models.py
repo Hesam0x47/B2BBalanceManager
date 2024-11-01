@@ -3,8 +3,8 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 
 from apps.accounting.models import AccountEntry
-from apps.accounts.models import SellerProfile, CustomerProfile
-from apps.transactions.models import CreditIncreaseRequestModel, Sell
+from apps.accounts.models import SellerProfile
+from apps.transactions.models import BalanceIncreaseRequestModel, Sell
 
 User = get_user_model()
 
@@ -17,7 +17,7 @@ class AccountEntryModelTest(TestCase):
 
     def test_account_entry_recharge(self):
         # Create a recharge and approve it
-        recharge = CreditIncreaseRequestModel.objects.create(seller=self.seller, amount=50.00)
+        recharge = BalanceIncreaseRequestModel.objects.create(seller=self.seller, amount=50.00)
         recharge.approve()  # This should create an AccountEntry
 
         # Verify AccountEntry was created with correct values
@@ -28,10 +28,8 @@ class AccountEntryModelTest(TestCase):
 
     def test_account_entry_sell(self):
         # Create a sell transaction
-        phone_number = "09999999999"
-        customer = CustomerProfile.objects.create(phone_number=phone_number)
-
-        sell = Sell.objects.create(seller=self.seller, customer=customer, amount=20.00)
+        customer_phone_number = "09999999999"
+        Sell.objects.create(seller=self.seller, phone_number=customer_phone_number, amount=20.00)
 
         # Verify AccountEntry was created with correct values
         account_entry = AccountEntry.objects.get(user=self.user, entry_type=AccountEntry.SELL)
