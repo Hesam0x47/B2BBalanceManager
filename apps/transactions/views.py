@@ -2,7 +2,8 @@ from rest_framework import status, generics
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 
-from .models import BalanceIncreaseRequestModel, ChargeCustomerModel
+from utils.helpers import acquire_thread_safe_lock
+from .models import BalanceIncreaseRequestModel, ChargeCustomerModel, LOCK_NAME
 from .serializers import BalanceIncreaseRequestSerializer, ChargeCustomerSerializer
 from ..accounts.permissions import IsSeller
 
@@ -31,20 +32,27 @@ class BalanceIncreaseRequestApprovalView(generics.UpdateAPIView):
     lookup_field = 'pk'
 
     def update(self, request, *args, **kwargs):
-        recharge: BalanceIncreaseRequestModel = self.get_object()
-        action = kwargs.get("action")
+        with acquire_thread_safe_lock(LOCK_NAME):
 
-        if action == BalanceIncreaseRequestModel.STATUS_ACCEPTED:
-            recharge.approve()
-        elif action == BalanceIncreaseRequestModel.STATUS_REJECTED:
-            recharge.reject()
-        else:
-            return Response({"error": "Invalid action."}, status=status.HTTP_400_BAD_REQUEST)
+            recharge: BalanceIncreaseRequestModel = self.get_object()
+            action = kwargs.get("action")
 
-        return Response(self.get_serializer(recharge).data)
+            if action == BalanceIncreaseRequestModel.STATUS_ACCEPTED:
+                recharge.approve()
+            elif action == BalanceIncreaseRequestModel.STATUS_REJECTED:
+                recharge.reject()
+            else:
+                return Response({"error": "Invalid action."}, status=status.HTTP_400_BAD_REQUEST)
+
+            return Response(self.get_serializer(recharge).data)
 
 
 class ChargeCustomerView(generics.CreateAPIView):
     queryset = ChargeCustomerModel.objects.all()
     serializer_class = ChargeCustomerSerializer
     permission_classes = [IsSeller]
+
+
+    def post(self, request, *args, **kwargs):
+        with acquire_thread_safe_lock(LOCK_NAME):
+            return super().post(request, *args, **kwargs)

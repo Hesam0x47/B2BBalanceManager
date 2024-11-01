@@ -8,7 +8,7 @@ from apps.accounting.models import AccountEntry
 from apps.accounts.models import SellerProfile
 from utils.helpers import acquire_thread_safe_lock
 
-
+LOCK_NAME = 'transactions_lock'
 class ChargeCustomerModel(models.Model):
     seller = models.ForeignKey(SellerProfile, related_name="sales", on_delete=models.CASCADE)
     phone_number = models.CharField(max_length=15)
@@ -17,14 +17,14 @@ class ChargeCustomerModel(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __process_charge_customer(self):
-        with acquire_thread_safe_lock(f'sell-{self.seller.id}-lock'):
-            # to prevent double-spending and race conditions
-            seller = SellerProfile.objects.select_for_update().get(id=self.seller.id)
-            if seller.balance < self.amount:
-                raise ValidationError("Insufficient balance for this sale.")
+        # with acquire_thread_safe_lock(LOCK_NAME):
+        # to prevent double-spending and race conditions
+        seller = SellerProfile.objects.select_for_update().get(id=self.seller.id)
+        if seller.balance < self.amount:
+            raise ValidationError("Insufficient balance for this sale.")
 
-            seller.balance -= Decimal(self.amount)
-            seller.save()
+        seller.balance -= Decimal(self.amount)
+        seller.save()
 
         # Log the sale in AccountEntry
         AccountEntry.objects.create(
@@ -64,14 +64,14 @@ class BalanceIncreaseRequestModel(models.Model):
     @db_transaction.atomic
     def approve(self):
         # to prevent race conditions we use a thread-safe lock
-        with acquire_thread_safe_lock(f'recharge-{self.seller.id}-lock'):
-            if self.status == self.STATUS_ACCEPTED:
-                # this guard prevents double-spending
-                return
+        # with acquire_thread_safe_lock(LOCK_NAME):
+        if self.status == self.STATUS_ACCEPTED:
+            # this guard prevents double-spending
+            return
 
-            self.status = self.STATUS_ACCEPTED
-            self.save()
-            self.__process_balance_increase()
+        self.status = self.STATUS_ACCEPTED
+        self.save()
+        self.__process_balance_increase()
 
     @db_transaction.atomic
     def reject(self):
