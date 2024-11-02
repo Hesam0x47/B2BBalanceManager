@@ -29,10 +29,11 @@ class ChargeCustomerModel(models.Model):
             # self.seller.balance -= Decimal(self.amount)
             # self.seller.save()
 
+        self.seller.refresh_from_db()
         # Log the sale in AccountEntry
         AccountEntry.objects.create(
             user=self.seller.user,
-            entry_type='sell',
+            entry_type=AccountEntry.SELL,
             amount=-self.amount,
             balance_after_entry=self.seller.balance
         )
@@ -80,10 +81,11 @@ class BalanceIncreaseRequestModel(models.Model):
             self.save()
             self.__process_balance_increase()
 
+        self.seller.refresh_from_db()
         # Log the recharge in AccountEntry
         AccountEntry.objects.create(
             user=self.seller.user,
-            entry_type='recharge',
+            entry_type=AccountEntry.RECHARGE,
             amount=self.amount,
             balance_after_entry=self.seller.balance
         )
