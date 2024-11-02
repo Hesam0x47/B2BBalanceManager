@@ -5,23 +5,28 @@ from concurrent.futures import ThreadPoolExecutor
 import requests
 
 # Configurations
-BASE_URL = "http://127.0.0.1:8000"  # Update with your actual Gunicorn server URL
+BASE_URL = "http://127.0.0.1:8000"
+number_of_sellers = 2
 SELLER_CREDENTIALS = [
-    {"username": "seller1", "password": "seller_password1", "email": "seller1@example.com",
-     "company_name": "Seller1 Company"},
-    {"username": "seller2", "password": "seller_password2", "email": "seller2@example.com",
-     "company_name": "Seller2 Company"},
-    # {"username": "seller3", "password": "seller_password3", "email": "seller3@example.com", "company_name": "Seller3 Company"},
-    # {"username": "seller4", "password": "seller_password4", "email": "seller4@example.com", "company_name": "Seller4 Company"},
-    # {"username": "seller5", "password": "seller_password5", "email": "seller5@example.com", "company_name": "Seller5 Company"},
+    {
+        "username": f"seller{idx}",
+        "password": f"seller_password{idx}",
+        "email": f"seller{idx}@example.com",
+        "company_name": f"Seller{idx} Company"
+    } for idx in range(1, number_of_sellers + 1)
 ]
-AUTH_TOKENS = {}  # Store tokens for sellers
-ADMIN_TOKEN = None  # Store the admin token here after login
-NUM_REQUESTS = 1000  # Total number of customer charge requests
+
+SELLERS_AUTH_TOKENS = {}
+ADMIN_TOKEN = None
+NUM_OF_CUSTOMER_CHARGE_REQUESTS = 1000
+
+admin_username = "admin"
+admin_password = "admin"
 
 # Track charges and balance increases
 total_charges = {f"seller{idx}": 0 for idx, _ in enumerate(SELLER_CREDENTIALS, start=1)}
 total_increases = {f"seller{idx}": 0 for idx, _ in enumerate(SELLER_CREDENTIALS, start=1)}
+initial_balances = {}
 
 # Initialize lock for thread-safe operations
 lock = threading.Lock()
@@ -92,33 +97,12 @@ def login_seller(seller):
     )
     if response.status_code == 200:
         token = response.json().get("access")
-        AUTH_TOKENS[seller["username"]] = token
+        SELLERS_AUTH_TOKENS[seller["username"]] = token
         print(f"Logged in {seller['username']} and obtained token.")
     else:
         print(f"Failed to log in {seller['username']}: {response.status_code}, {response.json()}")
 
 
-# Register sellers
-for seller in SELLER_CREDENTIALS:
-    register_seller(seller)
-
-# Admin login to verify sellers
-admin_username = "admin"
-admin_password = "admin"
-login_admin(admin_username, admin_password)
-
-initial_balances = {f"seller{idx}": get_seller_balance(idx) for idx, _ in enumerate(SELLER_CREDENTIALS, start=1)}
-
-# Verify each seller by their user ID (you might need to get seller IDs from the user list)
-for seller_id in range(1, len(SELLER_CREDENTIALS) + 1):
-    verify_seller(seller_id)
-
-# Log in sellers after verification
-for seller in SELLER_CREDENTIALS:
-    login_seller(seller)
-
-
-# Define the customer charge function
 def charge_customer(amount, seller_username):
     phone_number = f"09{random.randint(100000000, 999999999)}"
     response = requests.post(
@@ -127,7 +111,7 @@ def charge_customer(amount, seller_username):
             "phone_number": phone_number,
             "amount": amount
         },
-        headers={"Authorization": f"Bearer {AUTH_TOKENS[seller_username]}"}
+        headers={"Authorization": f"Bearer {SELLERS_AUTH_TOKENS[seller_username]}"}
     )
     if response.status_code == 201:
         with lock:
@@ -137,13 +121,12 @@ def charge_customer(amount, seller_username):
         print(f"Failed to charge customer with {amount} charge: {response.status_code}, {response.text}")
 
 
-# Define the balance increase function
 def increase_balance(seller_username):
     amount = random.randint(100, 10000)
     response = requests.post(
         f"{BASE_URL}/transactions/balance-increase-requests/",
         json={"amount": amount},
-        headers={"Authorization": f"Bearer {AUTH_TOKENS[seller_username]}"}
+        headers={"Authorization": f"Bearer {SELLERS_AUTH_TOKENS[seller_username]}"}
     )
     if response.status_code == 201:
         with lock:
@@ -159,31 +142,41 @@ def increase_balance(seller_username):
             print(f"Failed to approve increase balance: {response.status_code}, {response.json()}")
 
 
-# Run the test with multithreading
-def run_performance_test():
-    with ThreadPoolExecutor(max_workers=10) as executor:
-        for _ in range(NUM_REQUESTS):
-            # Randomly select a seller
-            seller_username = random.choice(list(AUTH_TOKENS.keys()))
-            amount = random.randint(1, 50)
-
-            # Submit customer charge task
-            executor.submit(charge_customer, amount, seller_username)
-
-            # Occasionally trigger a balance increase
-            if random.random() < 0.1:
-                executor.submit(increase_balance, seller_username)
-
-        # Wait for all submitted tasks to complete
-        executor.shutdown(wait=True)
-    print("All tasks have completed.")
-
-
 def get_seller_id(username):
     for idx, seller in enumerate(SELLER_CREDENTIALS, start=1):  # Start enumeration from 1 for ID
         if seller["username"] == username:
             return idx
     raise ValueError(f"Seller with username '{username}' not found.")
+
+
+def run_performance_test():
+    for seller in SELLER_CREDENTIALS:
+        register_seller(seller)
+
+    login_admin(admin_username, admin_password)
+    global initial_balances
+    initial_balances = {f"seller{idx}": get_seller_balance(idx) for idx, _ in enumerate(SELLER_CREDENTIALS, start=1)}
+
+    for seller_id in range(1, len(SELLER_CREDENTIALS) + 1):
+        verify_seller(seller_id)
+
+    for seller in SELLER_CREDENTIALS:
+        login_seller(seller)
+
+    with ThreadPoolExecutor(max_workers=9) as executor:
+        for _ in range(NUM_OF_CUSTOMER_CHARGE_REQUESTS):
+            random_seller_username = random.choice(list(SELLERS_AUTH_TOKENS.keys()))
+            amount = random.randint(1, 50)
+
+            executor.submit(charge_customer, amount, random_seller_username)
+
+            # Occasionally trigger a balance increase
+            if random.random() < 0.1:
+                executor.submit(increase_balance, random_seller_username)
+
+        # Wait for all submitted tasks to complete
+        executor.shutdown(wait=True)
+    print("All tasks have completed.")
 
 
 # Run the test
@@ -194,9 +187,7 @@ if __name__ == "__main__":
     for seller_username, initial_balance in initial_balances.items():
         expected_balance = initial_balance + total_increases[seller_username] - total_charges[seller_username]
 
-        # Get the seller ID based on username
         seller_id = get_seller_id(seller_username)
-
         response = requests.get(
             f"{BASE_URL}/accounts/sellers/{seller_id}/",
             headers={"Authorization": f"Bearer {ADMIN_TOKEN}"}
