@@ -1,28 +1,45 @@
+import random
 import threading
+from concurrent.futures import ThreadPoolExecutor
 
 import requests
-import random
-from concurrent.futures import ThreadPoolExecutor
 
 # Configurations
 BASE_URL = "http://127.0.0.1:8000"  # Update with your actual Gunicorn server URL
 SELLER_CREDENTIALS = [
-    {"username": "seller1", "password": "seller_password1", "email": "seller1@example.com", "company_name": "Seller1 Company"},
-    {"username": "seller2", "password": "seller_password2", "email": "seller2@example.com", "company_name": "Seller2 Company"}
+    {"username": "seller1", "password": "seller_password1", "email": "seller1@example.com",
+     "company_name": "Seller1 Company"},
+    {"username": "seller2", "password": "seller_password2", "email": "seller2@example.com",
+     "company_name": "Seller2 Company"},
+    # {"username": "seller3", "password": "seller_password3", "email": "seller3@example.com", "company_name": "Seller3 Company"},
+    # {"username": "seller4", "password": "seller_password4", "email": "seller4@example.com", "company_name": "Seller4 Company"},
+    # {"username": "seller5", "password": "seller_password5", "email": "seller5@example.com", "company_name": "Seller5 Company"},
 ]
 AUTH_TOKENS = {}  # Store tokens for sellers
 ADMIN_TOKEN = None  # Store the admin token here after login
-NUM_REQUESTS = 100  # Total number of customer charge requests
+NUM_REQUESTS = 1000  # Total number of customer charge requests
 
 # Track charges and balance increases
-total_charges = {"seller1": 0, "seller2": 0}
-total_increases = {"seller1": 0, "seller2": 0}
-initial_balances = {"seller1": 10000, "seller2": 10000}  # Assuming starting balance for both
+total_charges = {f"seller{idx}": 0 for idx, _ in enumerate(SELLER_CREDENTIALS, start=1)}
+total_increases = {f"seller{idx}": 0 for idx, _ in enumerate(SELLER_CREDENTIALS, start=1)}
 
 # Initialize lock for thread-safe operations
 lock = threading.Lock()
 
-# Function to register a seller
+
+def get_seller_balance(seller_id):
+    response = requests.get(
+        f"{BASE_URL}/accounts/sellers/{seller_id}/",
+        headers={"Authorization": f"Bearer {ADMIN_TOKEN}"}
+    )
+
+    if response.status_code == 200:
+        return float(response.json().get("balance"))
+    else:
+        print(f"Failed to retrieve balance for seller {seller_id}: {response.status_code}, {response.text}")
+    return 0
+
+
 def register_seller(seller):
     response = requests.post(
         f"{BASE_URL}/accounts/seller/register/",
@@ -39,7 +56,7 @@ def register_seller(seller):
     else:
         print(f"Failed to register {seller['username']}: {response.status_code}, {response.text}")
 
-# Function to login as admin
+
 def login_admin(username, password):
     global ADMIN_TOKEN
     response = requests.post(
@@ -52,7 +69,7 @@ def login_admin(username, password):
     else:
         print(f"Admin login failed: {response.status_code}, {response.json()}")
 
-# Function to verify a seller with admin privileges
+
 def verify_seller(seller_id):
     if not ADMIN_TOKEN:
         print("Admin token is missing. Admin must be logged in first.")
@@ -67,7 +84,7 @@ def verify_seller(seller_id):
     else:
         print(f"Failed to verify seller {seller_id}: {response.status_code}, {response.json()}")
 
-# Function to login and retrieve token for each seller
+
 def login_seller(seller):
     response = requests.post(
         f"{BASE_URL}/accounts/seller/login/",
@@ -80,6 +97,7 @@ def login_seller(seller):
     else:
         print(f"Failed to log in {seller['username']}: {response.status_code}, {response.json()}")
 
+
 # Register sellers
 for seller in SELLER_CREDENTIALS:
     register_seller(seller)
@@ -89,13 +107,16 @@ admin_username = "admin"
 admin_password = "admin"
 login_admin(admin_username, admin_password)
 
+initial_balances = {f"seller{idx}": get_seller_balance(idx) for idx, _ in enumerate(SELLER_CREDENTIALS, start=1)}
+
 # Verify each seller by their user ID (you might need to get seller IDs from the user list)
-for seller_id in [1, 2]:
+for seller_id in range(1, len(SELLER_CREDENTIALS) + 1):
     verify_seller(seller_id)
 
 # Log in sellers after verification
 for seller in SELLER_CREDENTIALS:
     login_seller(seller)
+
 
 # Define the customer charge function
 def charge_customer(amount, seller_username):
@@ -114,6 +135,7 @@ def charge_customer(amount, seller_username):
         print(f"Charged {amount} to customer {phone_number} for seller {seller_username}")
     else:
         print(f"Failed to charge customer with {amount} charge: {response.status_code}, {response.text}")
+
 
 # Define the balance increase function
 def increase_balance(seller_username):
@@ -136,6 +158,7 @@ def increase_balance(seller_username):
         else:
             print(f"Failed to approve increase balance: {response.status_code}, {response.json()}")
 
+
 # Run the test with multithreading
 def run_performance_test():
     with ThreadPoolExecutor(max_workers=10) as executor:
@@ -148,7 +171,7 @@ def run_performance_test():
             executor.submit(charge_customer, amount, seller_username)
 
             # Occasionally trigger a balance increase
-            if random.random() < 0.01:
+            if random.random() < 0.1:
                 executor.submit(increase_balance, seller_username)
 
         # Wait for all submitted tasks to complete
@@ -168,11 +191,8 @@ if __name__ == "__main__":
     run_performance_test()
 
     # Verify final balances for each seller
-    # for seller_username, initial_balance in initial_balances.items():
-    #     expected_balance = initial_balance + total_increases[seller_username] - total_charges[seller_username]
-    for seller in SELLER_CREDENTIALS:
-        seller_username = seller['username']
-        expected_balance = total_increases[seller_username] - total_charges[seller_username]
+    for seller_username, initial_balance in initial_balances.items():
+        expected_balance = initial_balance + total_increases[seller_username] - total_charges[seller_username]
 
         # Get the seller ID based on username
         seller_id = get_seller_id(seller_username)
