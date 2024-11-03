@@ -22,8 +22,8 @@ media
 dmypy.json
 
 # Environments
-.env
-.env.dev
+.env*
+
 .venv
 env/
 venv/

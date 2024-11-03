@@ -32,10 +32,10 @@ class AccountEntryAPITest(APITestCase, AdminAuthMixins):
 
         # Verify the API returns the correct account entry data
         self.assertEqual(response.status_code, status.HTTP_200_OK, msg=response.json())
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['entry_type'], 'recharge')
-        self.assertEqual(response.data[0]['amount'], "50.00")
-        self.assertEqual(response.data[0]['balance_after_entry'], "150.00")
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['results'][0]['entry_type'], 'recharge')
+        self.assertEqual(response.data['results'][0]['amount'], "50.00")
+        self.assertEqual(response.data['results'][0]['balance_after_entry'], "150.00")
 
     def test_account_entry_list_balance_rejected(self):
         # Create a recharge and approve it
@@ -47,7 +47,7 @@ class AccountEntryAPITest(APITestCase, AdminAuthMixins):
 
         # Verify the API returns the correct account entry data
         self.assertEqual(response.status_code, status.HTTP_200_OK, msg=response.json())
-        self.assertEqual(len(response.data), 0)
+        self.assertEqual(len(response.data['results']), 0)
 
     def test_account_entry_detail(self):
         customer_phone_number = "09999999999"

@@ -6,7 +6,7 @@ services:
     networks:
       - backend
   backend:
-    command: scripts/run.dev.manage.py.sh
+    command: scripts/run.dev.gunicorn.sh
     environment:
       - DATABASE_HOST=${DATABASE_HOST:-db}
       - REDIS_ADDR=${REDIS_ADDR:-redis}
