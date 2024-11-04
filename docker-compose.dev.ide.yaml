@@ -1,9 +1,0 @@
-services:
-  db:
-    network_mode: bridge
-
-  redis:
-    network_mode: bridge
-
-  backend:
-    command: echo "Nothing happens here, please run backend using the IDE of your choice, bye!"

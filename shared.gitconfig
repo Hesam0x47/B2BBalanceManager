@@ -8,6 +8,5 @@
     ci = commit
     df = diff
     lg = log --graph --oneline --decorate
-    docker-compose-dev-gunicorn="!docker compose -f docker-compose.yaml -f docker-compose.dev.gunicorn.yaml  --env-file .env.dev.gunicorn"
-    docker-compose-dev-ide="!docker compose -f docker-compose.yaml -f docker-compose.dev.ide.yaml  --env-file .env.dev.ide"
+    docker-compose-dev="!docker compose -f docker-compose.yaml -f docker-compose.dev.yaml  --env-file .env.dev"
     docker-compose-prod="!docker compose -f docker-compose.yaml -f docker-compose.prod.yaml  --env-file .env"

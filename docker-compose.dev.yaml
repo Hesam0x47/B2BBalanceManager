@@ -1,14 +1,12 @@
 services:
+
   db:
-    networks:
-      - backend
+    ports:
+      - "5432:5432"
+
   redis:
-    networks:
-      - backend
+    ports:
+      - "6379:6379"
+
   backend:
-    command: scripts/run.dev.manage.py.sh
-    environment:
-      - DATABASE_HOST=${DATABASE_HOST:-db}
-      - REDIS_ADDR=${REDIS_ADDR:-redis}
-    networks:
-      - backend
+    command: scripts/run.dev.gunicorn.sh

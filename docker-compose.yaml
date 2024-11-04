@@ -2,40 +2,37 @@ services:
   db:
     image: postgres:13
     environment:
-      POSTGRES_DB: ${DATABASE_NAME}
-      POSTGRES_USER: ${DATABASE_USER}
-      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME:-dbname}
+      POSTGRES_USER: ${DATABASE_USER:-dbuser}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-dbpassword}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+
+
   redis:
     image: redis:alpine
-    ports:
-      - "6379:6379"
+
   backend:
     build: .
     volumes:
       - .:/app
-    ports:
-      - "8000:8000"
     environment:
       - DEBUG=1
       - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
-      - DATABASE_NAME=${DATABASE_NAME}
-      - DATABASE_USER=${DATABASE_USER}
-      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - DATABASE_NAME=${DATABASE_NAME:-dbname}
+      - DATABASE_USER=${DATABASE_USER:-dbuser}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-dbpasword}
       - DATABASE_HOST=${DATABASE_HOST:-db}
-      - DATABASE_PORT=${DATABASE_PORT}
+      - DATABASE_PORT=${DATABASE_PORT:-5432}
       - REDIS_ADDR=${REDIS_ADDR:-redis}
     depends_on:
       - db
       - redis
-
+    ports:
+      - "8000:8000"
 
 volumes:
   postgres_data:
-
 
 networks:
   backend:
