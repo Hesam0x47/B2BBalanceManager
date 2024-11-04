@@ -22,11 +22,11 @@ class SellerVerificationAPITest(APITestCase, AdminAuthMixins, SellerUserMixins):
 
         self.verified_seller_token, _ = self.login_seller(username="verified_seller")
 
-        self.verify_seller_url = reverse("verify-seller", args=[self.non_verified_seller_profile.id])
+        self.verify_seller_url = reverse("verify-seller", args=[self.non_verified_seller_profile.user.username])
         return super().setUp()
 
     def test_verify_seller_as_admin(self):
-        self.login()
+        self.login_admin()
 
         # Admin attempts to verify the seller
         response = self.client.patch(self.verify_seller_url)

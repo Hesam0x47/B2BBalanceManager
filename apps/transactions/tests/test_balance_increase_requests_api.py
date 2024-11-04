@@ -17,7 +17,7 @@ class BalanceIncreaseRequestsAPITestCase(APITestCase, AdminAuthMixins, IncreaseB
         self.balance_increase_request_url = reverse('balance-increase-requests')
 
     def test_get_increase_balance_list(self):
-        self.login()
+        self.login_admin()
 
         # Create a few recharge instances for testing
         BalanceIncreaseRequestModel.objects.create(seller=self.seller, amount=20.00)
@@ -64,7 +64,7 @@ class BalanceIncreaseApprovalWithAuthTestCase(BaseBalanceIncreaseApprovalTestCas
 
     def setUp(self):
         super().setUp()
-        self.login()
+        self.login_admin()
 
     def test_approve_as_admin(self):
         self.approve_increase_balance_request(pk=self.balance_increase_request.pk,

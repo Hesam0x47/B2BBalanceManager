@@ -40,7 +40,7 @@ class TestCompleteUserStoryAPI(BaseTestChargeCustomerAPI, IncreaseBalanceTestMix
                 amount = round(random.uniform(1, 10000), 2)
                 response = self.increase_balance(amount=str(amount))
                 pk = response.data['id']
-                self.login()
+                self.login_admin()
                 self.approve_increase_balance_request(pk)
                 self.seller_current_balance[seller_index] += amount
 

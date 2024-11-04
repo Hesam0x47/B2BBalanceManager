@@ -20,7 +20,7 @@ class AccountEntryAPITest(APITestCase, AdminAuthMixins):
 
         self.client.login(username="seller", password="password")
 
-        self.login()
+        self.login_admin()
 
     def test_account_entry_list_balance_accepted(self):
         # Create a recharge and approve it

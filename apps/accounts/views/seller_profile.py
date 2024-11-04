@@ -12,3 +12,5 @@ class SellerProfileListView(generics.ListAPIView):
 class SellerProfileRetrieveView(generics.RetrieveAPIView):
     queryset = SellerProfile.objects.all()
     serializer_class = SellerProfileSerializer
+    lookup_field = "user__username"
+

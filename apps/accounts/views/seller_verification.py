@@ -9,6 +9,7 @@ from apps.accounts.serializers.seller_verification import SellerVerificationSeri
 class SellerVerificationView(generics.UpdateAPIView):
     queryset = SellerProfile.objects.all()
     serializer_class = SellerVerificationSerializer
+    lookup_field = "user__username"
 
     def update(self, request, *args, **kwargs):
         seller_profile = self.get_object()

@@ -18,7 +18,7 @@ class AdminLoginAPITest(APITestCase, AdminAuthMixins):
 
     def test_admin_login_success(self):
         # Login attempt with admin credentials
-        _, response = self.login()
+        _, response = self.login_admin()
 
         # Check if login is successful and JWT tokens are returned
         self.assertIn("access", response.data)
@@ -42,5 +42,5 @@ class AdminLoginAPITest(APITestCase, AdminAuthMixins):
             format="json",
         )
         # Check if login fails due to incorrect password
-        _, response = self.login(login_password="wrongpassword", expected_status_code=status.HTTP_401_UNAUTHORIZED)
+        _, response = self.login_admin(login_password="wrongpassword", expected_status_code=status.HTTP_401_UNAUTHORIZED)
         self.assertIn("No active account found with the given credentials", response.data["detail"])

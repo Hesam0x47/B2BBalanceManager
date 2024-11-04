@@ -16,6 +16,7 @@ class UserSerializer(serializers.ModelSerializer):
 class SellerProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer()
 
+
     class Meta:
         model = SellerProfile
         fields = ['user', 'balance', 'company_name', 'is_verified']

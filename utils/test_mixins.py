@@ -9,8 +9,8 @@ User = get_user_model()
 
 
 class AdminAuthMixins:
-    def login(self, username: str = "admin", password: str = "adminpass", login_password: Optional[str] = None,
-              expected_status_code: int = status.HTTP_200_OK) -> Tuple[Optional[str], Any]:
+    def login_admin(self, username: str = "admin", password: str = "adminpass", login_password: Optional[str] = None,
+                    expected_status_code: int = status.HTTP_200_OK) -> Tuple[Optional[str], Any]:
         if not User.objects.filter(username=username).exists():
             User.objects.create_superuser(username=username, password=password)
 
