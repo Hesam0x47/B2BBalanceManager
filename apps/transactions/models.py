@@ -8,7 +8,6 @@ from apps.accounts.models import SellerProfile
 from utils.helpers import acquire_thread_safe_lock
 
 
-
 class ChargeCustomerModel(models.Model):
     seller = models.ForeignKey(SellerProfile, related_name="charge_customer", on_delete=models.CASCADE)
     phone_number = models.CharField(max_length=15)
@@ -64,6 +63,9 @@ class BalanceIncreaseRequestModel(models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     timestamp = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=STATUS_PENDING)
+
+    class Meta:
+        ordering = ['pk']
 
     @db_transaction.atomic
     def approve(self):

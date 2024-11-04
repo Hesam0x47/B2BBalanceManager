@@ -25,7 +25,10 @@ class SellerProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name=RELATED_NAME)
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     company_name = models.CharField(max_length=255, blank=True, null=True)
-    is_verified = models.BooleanField(default=False)  # TODO: add new api for seller verification
+    is_verified = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['pk']
 
     def __str__(self):
         return f"Seller: {self.user.username}"

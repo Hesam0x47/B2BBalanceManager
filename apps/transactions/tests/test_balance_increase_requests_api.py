@@ -29,8 +29,8 @@ class BalanceIncreaseRequestsAPITestCase(APITestCase, AdminAuthMixins, IncreaseB
         # Verify the response status and data
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["results"]), 2)  # We created 2 recharges
-        self.assertEqual(response.data["results"][0]['amount'], '20.00')
-        self.assertEqual(response.data["results"][1]['amount'], '50.00')
+        self.assertEqual(response.data["results"][0]['amount'], '20.00', msg=response.data)
+        self.assertEqual(response.data["results"][1]['amount'], '50.00', response.data)
 
     def test_increase_balance_success(self):
         token, _ = self.login_seller(self.seller_user.username)
