@@ -34,7 +34,7 @@ package "transactions" {
 }
 
 package "accounting" {
-    class AccountEntry {
+    class AccountingEntry {
         +user: ForeignKey
         +entry_type: CharField
         +amount: DecimalField
@@ -48,6 +48,6 @@ User "1" -- "1" SellerProfile : OneToOne
 User "1" -- "1" AdminProfile : OneToOne
 SellerProfile "1" -- "0..*" ChargeCustomerModel : ForeignKey
 SellerProfile "1" -- "0..*" BalanceIncreaseRequestModel : ForeignKey
-User "1" -- "0..*" AccountEntry : ForeignKey
+User "1" -- "0..*" AccountingEntry : ForeignKey
 
 @enduml
