@@ -44,7 +44,7 @@ class BalanceIncreaseRequestApprovalView(generics.UpdateAPIView):
         return Response(self.get_serializer(recharge).data)
 
 
-class ChargeCustomerView(generics.CreateAPIView):
+class ChargeCustomerCreateAPIView(generics.CreateAPIView):
     queryset = ChargeCustomerModel.objects.all()
     serializer_class = ChargeCustomerSerializer
     permission_classes = [IsSeller]
