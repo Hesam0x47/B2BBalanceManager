@@ -3,7 +3,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from apps.accounting.models import AccountEntry
+from apps.accounting.models import AccountingEntry
 from apps.accounts.tests.utils import AccountsTestUtils
 from apps.transactions.models import BalanceIncreaseRequestModel, ChargeCustomerModel
 from utils.test_mixins import AdminAuthMixins
@@ -11,7 +11,7 @@ from utils.test_mixins import AdminAuthMixins
 User = get_user_model()
 
 
-class AccountEntryAPITest(APITestCase, AdminAuthMixins):
+class AccountingEntryAPITest(APITestCase, AdminAuthMixins):
 
     def setUp(self):
         # Set up a seller and authenticate
@@ -25,9 +25,9 @@ class AccountEntryAPITest(APITestCase, AdminAuthMixins):
     def test_account_entry_list_balance_accepted(self):
         # Create a recharge and approve it
         recharge = BalanceIncreaseRequestModel.objects.create(seller=self.seller, amount=50.00)
-        recharge.approve()  # This should create an AccountEntry
+        recharge.approve()  # This should create an AccountingEntry
 
-        url = reverse('accountentry-list')  # List endpoint
+        url = reverse('accounting-entry-list')  # List endpoint
         response = self.client.get(url)
 
         # Verify the API returns the correct account entry data
@@ -40,9 +40,9 @@ class AccountEntryAPITest(APITestCase, AdminAuthMixins):
     def test_account_entry_list_balance_rejected(self):
         # Create a recharge and approve it
         recharge = BalanceIncreaseRequestModel.objects.create(seller=self.seller, amount=50.00)
-        recharge.reject()  # This should not create an AccountEntry
+        recharge.reject()  # This should not create an AccountingEntry
 
-        url = reverse('accountentry-list')  # List endpoint
+        url = reverse('accounting-entry-list')  # List endpoint
         response = self.client.get(url)
 
         # Verify the API returns the correct account entry data
@@ -54,9 +54,9 @@ class AccountEntryAPITest(APITestCase, AdminAuthMixins):
 
         ChargeCustomerModel.objects.create(seller=self.seller, phone_number=customer_phone_number, amount=20.00)
 
-        # Get the created AccountEntry for the sell transaction
-        account_entry = AccountEntry.objects.get(user=self.seller_user, entry_type=AccountEntry.SELL)
-        url = reverse('accountentry-detail', args=[account_entry.id])  # Detail endpoint
+        # Get the created AccountingEntry for the sell transaction
+        account_entry = AccountingEntry.objects.get(user=self.seller_user, entry_type=AccountingEntry.SELL)
+        url = reverse('accounting-entry-detail', args=[account_entry.id])  # Detail endpoint
         response = self.client.get(url)
 
         # Verify the API returns the correct account entry data

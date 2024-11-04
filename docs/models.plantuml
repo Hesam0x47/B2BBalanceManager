@@ -1,0 +1,53 @@
+@startuml
+
+' Define packages for each Django app
+package "accounts" {
+    class User {
+        +username: CharField
+        +role: CharField
+    }
+    class SellerProfile {
+        +user: OneToOneField
+        +balance: DecimalField
+        +company_name: CharField
+        +is_verified: BooleanField
+    }
+    class AdminProfile {
+        +user: OneToOneField
+        +department: CharField
+    }
+}
+
+package "transactions" {
+    class ChargeCustomerModel {
+        +seller: ForeignKey
+        +phone_number: CharField
+        +amount: DecimalField
+        +timestamp: DateTimeField
+    }
+    class BalanceIncreaseRequestModel {
+        +seller: ForeignKey
+        +amount: DecimalField
+        +timestamp: DateTimeField
+        +status: CharField
+    }
+}
+
+package "accounting" {
+    class AccountEntry {
+        +user: ForeignKey
+        +entry_type: CharField
+        +amount: DecimalField
+        +balance_after_entry: DecimalField
+        +timestamp: DateTimeField
+    }
+}
+
+' Relationships between models
+User "1" -- "1" SellerProfile : OneToOne
+User "1" -- "1" AdminProfile : OneToOne
+SellerProfile "1" -- "0..*" ChargeCustomerModel : ForeignKey
+SellerProfile "1" -- "0..*" BalanceIncreaseRequestModel : ForeignKey
+User "1" -- "0..*" AccountEntry : ForeignKey
+
+@enduml

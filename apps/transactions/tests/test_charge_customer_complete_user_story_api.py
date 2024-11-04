@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from rest_framework import status
 
-from apps.accounting.models import AccountEntry
+from apps.accounting.models import AccountingEntry
 from apps.transactions.tests.test_charge_customer_api import BaseTestChargeCustomerAPI
 from apps.transactions.tests.utils import IncreaseBalanceTestMixins
 
@@ -50,8 +50,8 @@ class TestCompleteUserStoryAPI(BaseTestChargeCustomerAPI, IncreaseBalanceTestMix
             expected_balance = Decimal(self.seller_current_balance[i] - total_sells[i])
             self.assertAlmostEqual(seller_profile.balance, expected_balance, places=2)
 
-            # Validate the AccountEntry records
+            # Validate the AccountingEntry records
             seller_entries_total = \
-                AccountEntry.objects.filter(user=seller_profile.user, entry_type=AccountEntry.SELL).aggregate(
+                AccountingEntry.objects.filter(user=seller_profile.user, entry_type=AccountingEntry.SELL).aggregate(
                     total=models.Sum('amount'))['total']
             self.assertAlmostEqual(-seller_entries_total, Decimal(total_sells[i]), places=2)

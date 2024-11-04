@@ -1,9 +1,9 @@
 from rest_framework import viewsets
 
-from .models import AccountEntry
-from .serializers import AccountEntrySerializer
+from .models import AccountingEntry
+from .serializers import AccountingEntrySerializer
 
 
-class AccountEntryViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = AccountEntry.objects.all()
-    serializer_class = AccountEntrySerializer
+class AccountingEntryViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = AccountingEntry.objects.all()
+    serializer_class = AccountingEntrySerializer

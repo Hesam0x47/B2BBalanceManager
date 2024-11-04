@@ -3,7 +3,7 @@ from django.db import transaction as db_transaction
 from django.db.models import F
 from rest_framework.exceptions import ValidationError
 
-from apps.accounting.models import AccountEntry
+from apps.accounting.models import AccountingEntry
 from apps.accounts.models import SellerProfile
 from utils.helpers import acquire_thread_safe_lock
 
@@ -30,10 +30,10 @@ class ChargeCustomerModel(models.Model):
             # self.seller.save()
 
         self.seller.refresh_from_db()
-        # Log the sale in AccountEntry
-        AccountEntry.objects.create(
+        # Log the sale in AccountingEntry
+        AccountingEntry.objects.create(
             user=self.seller.user,
-            entry_type=AccountEntry.SELL,
+            entry_type=AccountingEntry.SELL,
             amount=-self.amount,
             balance_after_entry=self.seller.balance
         )
@@ -82,10 +82,10 @@ class BalanceIncreaseRequestModel(models.Model):
             self.__process_balance_increase()
 
         self.seller.refresh_from_db()
-        # Log the recharge in AccountEntry
-        AccountEntry.objects.create(
+        # Log the recharge in AccountingEntry
+        AccountingEntry.objects.create(
             user=self.seller.user,
-            entry_type=AccountEntry.RECHARGE,
+            entry_type=AccountingEntry.RECHARGE,
             amount=self.amount,
             balance_after_entry=self.seller.balance
         )

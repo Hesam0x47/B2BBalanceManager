@@ -2,7 +2,7 @@ from django.conf import settings
 from django.db import models
 
 
-class AccountEntry(models.Model):
+class AccountingEntry(models.Model):
     RECHARGE = 'recharge'
     SELL = 'sell'
     ENTRY_TYPE_CHOICES = [

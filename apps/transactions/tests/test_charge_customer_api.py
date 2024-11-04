@@ -8,7 +8,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
 
-from apps.accounting.models import AccountEntry
+from apps.accounting.models import AccountingEntry
 from apps.accounts.tests.utils import AccountsTestUtils
 from utils.test_mixins import SellerUserMixins, AdminAuthMixins
 
@@ -78,8 +78,8 @@ class TestChargeCustomerAPI(BaseTestChargeCustomerAPI):
             expected_balance = Decimal(self.seller_current_balance[i] - seller_totals[i])
             self.assertAlmostEqual(seller_profile.balance, expected_balance, places=2)
 
-            # Validate the AccountEntry records
+            # Validate the AccountingEntry records
             seller_entries_total = \
-                AccountEntry.objects.filter(user=seller_profile.user, entry_type=AccountEntry.SELL).aggregate(
+                AccountingEntry.objects.filter(user=seller_profile.user, entry_type=AccountingEntry.SELL).aggregate(
                     total=models.Sum('amount'))['total']
             self.assertAlmostEqual(-seller_entries_total, Decimal(seller_totals[i]), places=2)
