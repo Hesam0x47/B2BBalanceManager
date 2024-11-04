@@ -12,13 +12,13 @@ class ChargeCustomerModel(models.Model):
     seller = models.ForeignKey(SellerProfile, related_name="charge_customer", on_delete=models.CASCADE)
     phone_number = models.CharField(max_length=15)
     amount = models.DecimalField(max_digits=10, decimal_places=2)  # todo: CHANGE THIS FIELD TO PositiveIntegerField
-                                                                   #  and limit it to 5000, 1000,20000,50000
+    #  and limit it to 5000, 1000,20000,50000
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __process_charge_customer(self):
-        seller_lock_name = f"seller-{self.seller.id}-lock"  # Lock per seller
+        per_seller_lock_name = f"seller-{self.seller.id}-lock"
 
-        with acquire_thread_safe_lock(seller_lock_name):
+        with acquire_thread_safe_lock(per_seller_lock_name):
             # to prevent double-spending and race conditions
             self.seller.refresh_from_db()
             if self.seller.balance < self.amount:
@@ -69,10 +69,10 @@ class BalanceIncreaseRequestModel(models.Model):
 
     @db_transaction.atomic
     def approve(self):
-        seller_lock_name = f"seller-{self.seller.id}-lock"  # Lock per seller
+        per_seller_lock_name = f"seller-{self.seller.id}-lock"
 
         # to prevent race conditions we use a thread-safe lock
-        with acquire_thread_safe_lock(seller_lock_name):
+        with acquire_thread_safe_lock(per_seller_lock_name):
             self.seller.refresh_from_db()
 
             if self.status == self.STATUS_ACCEPTED:
