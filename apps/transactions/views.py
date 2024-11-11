@@ -11,17 +11,17 @@ class BalanceIncreaseRequestListCreateView(generics.ListCreateAPIView):
     queryset = BalanceIncreaseRequestModel.objects.all()
     serializer_class = BalanceIncreaseRequestSerializer
 
-    def get_permissions(self):
-        # Apply IsAdmin permission for GET requests
-        if self.request.method == 'GET':
-            permission_classes = [IsAdminUser]
-        # Apply IsSeller permission for POST requests
-        elif self.request.method == 'POST':
-            permission_classes = [IsSeller]
-        else:
-            permission_classes = [IsAdminUser]
-
-        return [permission() for permission in permission_classes]
+    # def get_permissions(self):
+    #     # Apply IsAdmin permission for GET requests
+    #     if self.request.method == 'GET':
+    #         permission_classes = [IsAdminUser]
+    #     # Apply IsSeller permission for POST requests
+    #     elif self.request.method == 'POST':
+    #         permission_classes = [IsSeller]
+    #     else:
+    #         permission_classes = [IsAdminUser]
+    #
+    #     return [permission() for permission in permission_classes]
 
 
 class BalanceIncreaseRequestApprovalView(generics.UpdateAPIView):
@@ -47,4 +47,4 @@ class BalanceIncreaseRequestApprovalView(generics.UpdateAPIView):
 class ChargeCustomerCreateAPIView(generics.CreateAPIView):
     queryset = ChargeCustomerModel.objects.all()
     serializer_class = ChargeCustomerSerializer
-    permission_classes = [IsSeller]
+    # permission_classes = [IsSeller]

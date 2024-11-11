@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 
@@ -13,6 +14,7 @@ class SellerRegistrationSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
     password2 = serializers.CharField(write_only=True, required=True)
     company_name = serializers.CharField(max_length=255, required=True, write_only=True)
+    groups = serializers.PrimaryKeyRelatedField(queryset=Group.objects.all(), many=True, required=False)
 
     def validate(self, attrs):
         if attrs['password'] != attrs['password2']:

@@ -9,4 +9,4 @@ services:
       - "6379:6379"
 
   backend:
-    command: scripts/run.dev.gunicorn.sh
+    command: bash scripts/run.dev.gunicorn.sh
