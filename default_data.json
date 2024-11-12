@@ -1,0 +1,50 @@
+[
+  {
+    "model": "auth.group",
+    "pk": 1,
+    "fields": {
+      "name": "Sellers",
+      "permissions": [
+        25,
+        21
+      ]
+    }
+  },
+  {
+    "model": "accounts.user",
+    "pk": 1,
+    "fields": {
+      "password": "pbkdf2_sha256$600000$VZFcH08bwLLuD4sagg4QJ6$3Aw9mgkxoeEJldHNTUJHAu480uEWXieUvsiEhYfl7OI=",
+      "last_login": "2024-11-11T12:17:54.827Z",
+      "is_superuser": true,
+      "username": "admin",
+      "first_name": "",
+      "last_name": "",
+      "email": "admin@example.com",
+      "is_staff": true,
+      "is_active": true,
+      "date_joined": "2024-11-11T12:15:45.814Z",
+      "role": "",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "accounts.user",
+    "pk": 2,
+    "fields": {
+        "password": "pbkdf2_sha256$600000$NzXTBK1gJIGzlQpsYAKLGG$BPKbksLVUMBmtGc/+KT35pnI4p21wRVRk3UQuVfh9+g=",
+        "last_login": null,
+        "is_superuser": false,
+        "username": "Seller",
+        "first_name": "",
+        "last_name": "",
+        "email": "seller@sample.com",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2024-11-11T12:57:34Z",
+        "role": "seller",
+        "user_permissions": []
+    }
+}
+]

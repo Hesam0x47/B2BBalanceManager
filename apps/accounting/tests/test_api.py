@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APITestCase
+from utils.api_test_case import ProjectAPITestCase as APITestCase
 
 from apps.accounting.models import AccountingEntry
 from apps.accounts.tests.utils import AccountsTestUtils

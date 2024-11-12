@@ -1,10 +1,10 @@
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APITestCase
 
 from apps.accounts.tests.utils import AccountsTestUtils
 from apps.transactions.models import BalanceIncreaseRequestModel
 from apps.transactions.tests.utils import IncreaseBalanceTestMixins
+from utils.api_test_case import ProjectAPITestCase as APITestCase
 from utils.test_mixins import AdminAuthMixins, SellerUserMixins
 
 
@@ -56,7 +56,7 @@ class BaseBalanceIncreaseApprovalTestCase(APITestCase, IncreaseBalanceTestMixins
         self.seller_user, self.seller = AccountsTestUtils.create_seller()
         token, _ = self.login_seller(username=self.seller_user.username)
         self.set_seller_authorization_token(token)
-        self.increase_balance( amount='30.00', expected_status_code=status.HTTP_201_CREATED)
+        self.increase_balance(amount='30.00', expected_status_code=status.HTTP_201_CREATED)
         self.balance_increase_request = BalanceIncreaseRequestModel.objects.last()
 
 
@@ -85,10 +85,14 @@ class BalanceIncreaseApprovalWithAuthTestCase(BaseBalanceIncreaseApprovalTestCas
 
 
 class BalanceIncreaseApprovalNoAuthTestCase(BaseBalanceIncreaseApprovalTestCase):
-    def test_approve_as_non_admin_401_unauthorized(self):
-        self.approve_increase_balance_request(pk=self.balance_increase_request.pk,
-                                              expected_status_code=status.HTTP_403_FORBIDDEN)
+    def test_approve_as_non_admin_403(self):
+        self.approve_increase_balance_request(
+            pk=self.balance_increase_request.pk,
+            expected_status_code=status.HTTP_403_FORBIDDEN,
+        )
 
-    def test_reject_as_non_admin_401_unauthorized(self):
-        self.approve_increase_balance_request(pk=self.balance_increase_request.pk,
-                                              expected_status_code=status.HTTP_403_FORBIDDEN)
+    def test_reject_as_non_admin_403_unauthorized(self):
+        self.approve_increase_balance_request(
+            pk=self.balance_increase_request.pk,
+            expected_status_code=status.HTTP_403_FORBIDDEN,
+        )

@@ -1,12 +1,12 @@
 from django.db import transaction
-from django.test import TestCase
+from utils.api_test_case import ProjectAPITestCase as APITestCase
 from rest_framework.exceptions import ValidationError
 
 from apps.accounts.tests.utils import AccountsTestUtils
 from apps.transactions.models import BalanceIncreaseRequestModel, ChargeCustomerModel
 
 
-class RechargeModelTest(TestCase):
+class RechargeModelTest(APITestCase):
     def setUp(self):
         self.seller_user, self.seller_profile = AccountsTestUtils.create_seller()
 
@@ -61,7 +61,7 @@ class RechargeModelTest(TestCase):
         self.assertEqual(self.seller_profile.balance, 100.00)  # Balance remains unchanged
 
 
-class SellModelTest(TestCase):
+class SellModelTest(APITestCase):
     def setUp(self):
         self.seller_user, self.seller_profile = AccountsTestUtils.create_seller()
 
@@ -80,7 +80,7 @@ class SellModelTest(TestCase):
             ChargeCustomerModel.objects.create(seller=self.seller_profile, phone_number=self.phone_number, amount=200.00)
 
 
-class DoubleSpendingTest(TestCase):
+class DoubleSpendingTest(APITestCase):
     def setUp(self):
         self.seller_user, self.seller_profile = AccountsTestUtils.create_seller()
         self.phone_number = "09999999999"
