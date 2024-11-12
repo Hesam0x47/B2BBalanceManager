@@ -12,7 +12,6 @@ from .views.seller_verification import SellerVerificationView
 urlpatterns = [
     path('admin/login/', AdminTokenObtainPairView.as_view(), name='admin-login'),
     path('admin/verify-seller/<str:user__username>/', SellerVerificationView.as_view(), name='verify-seller'),
-    # Admin-only URL
 
     path("seller/register/", SellerRegistrationView.as_view(), name="seller-register"),
     path("seller/login/", SellerLoginView.as_view(), name="seller-login"),
@@ -25,6 +24,5 @@ urlpatterns = [
 router = DefaultRouter()
 router.register(r'groups', GroupViewSet)
 router.register(r'permissions', PermissionViewSet)
-
 
 urlpatterns += router.urls

@@ -27,7 +27,7 @@ class AccountsTestUtils:
             is_verified=is_verified,
         )
 
-        SellerGroup = Group.objects.get(name="Sellers")
-        seller_user.groups.add(SellerGroup)
+        seller_group = Group.objects.get(name="Sellers")
+        seller_user.groups.add(seller_group)
         seller_user.save()
         return seller_user, seller_profile
