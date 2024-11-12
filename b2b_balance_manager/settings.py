@@ -51,7 +51,6 @@ INSTALLED_APPS = [
     'apps.transactions',
     'apps.accounts',
     'apps.accounting',
-    'apps.status',
 ]
 
 MIDDLEWARE = [
@@ -154,7 +153,6 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_PERMISSION_CLASSES': (
-        # 'apps.status.permissions.CanChangeStatusOnlyPermission',
         'rest_framework.permissions.DjangoModelPermissions',
         # 'rest_framework.permissions.IsAdminUser',
     ),
