@@ -1,15 +1,14 @@
-# accounting/tests/test_models.py
 from django.contrib.auth import get_user_model
-from django.test import TestCase
 
 from apps.accounting.models import AccountingEntry
 from apps.accounts.tests.utils import AccountsTestUtils
 from apps.transactions.models import BalanceIncreaseRequestModel, ChargeCustomerModel
+from utils.api_test_case import ProjectAPITestCase as APITestCase
 
 User = get_user_model()
 
 
-class AccountingEntryModelTest(TestCase):
+class AccountingEntryModelTest(APITestCase):
 
     def setUp(self):
         self.user, self.seller = AccountsTestUtils.create_seller()

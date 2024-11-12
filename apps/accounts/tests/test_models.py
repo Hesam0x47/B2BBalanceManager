@@ -1,10 +1,9 @@
-from django.test import TestCase
-
+from utils.api_test_case import ProjectAPITestCase as APITestCase
 from apps.accounts.models import SellerProfile, User
 from apps.accounts.tests.utils import AccountsTestUtils
 
 
-class SellerProfileModelTest(TestCase):
+class SellerProfileModelTest(APITestCase):
 
     def setUp(self):
         self.seller_user, self.seller_profile = AccountsTestUtils.create_seller()

@@ -14,3 +14,4 @@ else
     echo "No migrations to apply."
 fi
 
+bash scripts/load_default_data.sh

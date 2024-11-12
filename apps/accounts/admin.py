@@ -1,13 +1,15 @@
 from django.contrib import admin
+from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin
 
-from .models import User, SellerProfile, AdminProfile
+from .models import SellerProfile, AdminProfile
+
+User = get_user_model()
 
 
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
     model = User
-
 
 @admin.register(SellerProfile)
 class SellerProfileAdmin(admin.ModelAdmin):

@@ -1,4 +1,4 @@
 services:
 
   backend:
-    command: scripts/run.prod.sh
+    command: bash scripts/run.prod.sh
